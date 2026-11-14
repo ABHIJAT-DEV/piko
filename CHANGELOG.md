@@ -1,3 +1,9 @@
+## [1.9.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.9.0...v1.9.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **dm:** scroll deleted message bubbles with message_list and add bottom padding ([a6eea4a](https://github.com/ABHIJAT-DEV/piko/commit/a6eea4a629cac0f4e4167893513d7c842ac1a75f))
+
 ## [1.9.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.8.0...v1.9.0) (2026-11-14)
 
 ### ✨ New Features
