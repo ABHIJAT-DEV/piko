@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "patches": [
     {
       "name": "Add settings",
@@ -284,7 +284,7 @@
     },
     {
       "name": "Device spoofing",
-      "description": "Reports the device model chosen here (or later in the Piko settings) to Instagram, for features gated to other phones such as HDR playback quality.",
+      "description": "Reports the device model chosen here to Instagram, for features gated to other phones such as HDR playback quality.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -313,7 +313,7 @@
         {
           "key": "deviceModel",
           "title": "Device model",
-          "description": "The device Instagram is told this phone is. It is baked into the patched app and applies from the very first launch, before any login. It can later be changed in the Piko settings inside the app.",
+          "description": "The device Instagram is told this phone is. It is baked into the patched app and applies from the very first launch, before any login. To change it, patch the app again with a different model.",
           "required": true,
           "type": "kotlin.String",
           "default": "galaxy_s26_ultra",
@@ -371,24 +371,6 @@
       "default": true,
       "category": null,
       "compatiblePackages": [
-        {
-          "packageName": "com.twitter.android",
-          "name": "Twitter",
-          "description": null,
-          "apkFileType": "APKM",
-          "appIconColor": "#000000",
-          "signatures": null,
-          "formFactor": "MOBILE",
-          "targets": [
-            {
-              "version": "12.19.1-release.0",
-              "versionCodes": null,
-              "isExperimental": false,
-              "minSdk": null,
-              "description": null
-            }
-          ]
-        },
         {
           "packageName": "com.instagram.android",
           "name": "Instagram",
@@ -1864,7 +1846,7 @@
     },
     {
       "name": "Theme",
-      "description": "Adds Material You and AMOLED controls to Piko settings on Android 12 and later. On Android 8\u201311, it applies a fixed Material You-style theme or an optional AMOLED theme.",
+      "description": "Adds Material You and AMOLED controls to Piko settings on Android 12 and later. On Android 8–11, it applies a fixed Material You-style theme or an optional AMOLED theme.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -1892,8 +1874,8 @@
       "options": [
         {
           "key": "amoled",
-          "title": "Pure-black AMOLED theme for Android 8\u201311",
-          "description": "Use a fixed pure-black AMOLED theme instead of the fixed Material You-style theme on Android 8\u201311. On Android 12 and later, use the AMOLED control in Piko settings.",
+          "title": "Pure-black AMOLED theme for Android 8–11",
+          "description": "Use a fixed pure-black AMOLED theme instead of the fixed Material You-style theme on Android 8–11. On Android 12 and later, use the AMOLED control in Piko settings.",
           "required": false,
           "type": "kotlin.Boolean",
           "default": false,

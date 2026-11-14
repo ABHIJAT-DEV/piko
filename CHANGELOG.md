@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.1.0...v1.2.0) (2026-11-14)
+
+### ✨ New Features
+
+* **instagram:** remove the entire Twitter side — Instagram-only fork ([032b44e](https://github.com/ABHIJAT-DEV/piko/commit/032b44e85e5e4af9f505c2be82c570318a541b2f))
+
 ## [1.1.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.0.1...v1.1.0) (2026-11-14)
 
 ### ✨ New Features

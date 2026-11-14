@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-14T12:48:40",
-  "description": "## [1.1.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.0.1...v1.1.0) (2026-11-14)\n\n### ✨ New Features\n\n* **instagram:** choose the spoofed device model in Morphe before patching ([0e9e5a4](https://github.com/ABHIJAT-DEV/piko/commit/0e9e5a4419529e97d4cea74fa099d6cd5cc58716))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.1.0/patches-1.1.0.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.1.0/patches-1.1.0.mpp.asc",
-  "version": "1.1.0"
+  "created_at": "2026-11-14T13:32:26",
+  "description": "## [1.2.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.1.0...v1.2.0) (2026-11-14)\n\n### ✨ New Features\n\n* **instagram:** remove the entire Twitter side — Instagram-only fork ([032b44e](https://github.com/ABHIJAT-DEV/piko/commit/032b44e85e5e4af9f505c2be82c570318a541b2f))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.2.0/patches-1.2.0.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.2.0/patches-1.2.0.mpp.asc",
+  "version": "1.2.0"
 }
