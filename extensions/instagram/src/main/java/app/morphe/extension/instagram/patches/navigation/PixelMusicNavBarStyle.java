@@ -301,8 +301,12 @@ public final class PixelMusicNavBarStyle {
             if (bg != null && (!(bg instanceof ColorDrawable) || ((ColorDrawable) bg).getColor() != Color.TRANSPARENT)) {
                 parentGroup.setBackgroundColor(Color.TRANSPARENT);
             }
-            parentGroup.setClipChildren(false);
-            parentGroup.setClipToPadding(false);
+            if (parentGroup.getClipChildren()) {
+                parentGroup.setClipChildren(false);
+            }
+            if (parentGroup.getClipToPadding()) {
+                parentGroup.setClipToPadding(false);
+            }
 
             View largeSibling = null;
             for (int i = 0; i < parentGroup.getChildCount(); i++) {
@@ -372,10 +376,13 @@ public final class PixelMusicNavBarStyle {
             boolean isReelsSelected,
             BarState state
     ) {
+        int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
+        boolean applyFullscreen = isReelsSelected && isReelsPlayerFullscreen(activity, contentRoot, screenHeight);
+
         Window window = activity.getWindow();
         if (window != null) {
             View decor = window.getDecorView();
-            if (isReelsSelected) {
+            if (applyFullscreen) {
                 if (!state.reelsSystemBarsApplied) {
                     state.savedStatusBarColor = window.getStatusBarColor();
                     state.savedSystemUiVisibility = decor.getSystemUiVisibility();
@@ -385,17 +392,17 @@ public final class PixelMusicNavBarStyle {
                             state.savedAppearance = ic.getSystemBarsAppearance();
                         }
                     }
+                    if (Build.VERSION.SDK_INT >= 29) {
+                        window.setStatusBarContrastEnforced(false);
+                    }
                     state.reelsSystemBarsApplied = true;
                 }
                 if (window.getStatusBarColor() != Color.TRANSPARENT) {
                     window.setStatusBarColor(Color.TRANSPARENT);
                 }
-                if (Build.VERSION.SDK_INT >= 29) {
-                    window.setStatusBarContrastEnforced(false);
-                }
                 if (Build.VERSION.SDK_INT >= 30) {
                     WindowInsetsController ic = window.getInsetsController();
-                    if (ic != null) {
+                    if (ic != null && (ic.getSystemBarsAppearance() & WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS) != 0) {
                         ic.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
                     }
                 }
@@ -421,7 +428,7 @@ public final class PixelMusicNavBarStyle {
             }
         }
 
-        if (!isReelsSelected) {
+        if (!applyFullscreen) {
             for (View header : state.hiddenReelsHeaders) {
                 if (header != null && header.getVisibility() == View.GONE) {
                     header.setVisibility(View.VISIBLE);
@@ -441,11 +448,10 @@ public final class PixelMusicNavBarStyle {
             return;
         }
 
-        int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
         int topThreshold = (int) (screenHeight * 0.18f);
         int bottomThreshold = (int) (screenHeight * 0.78f);
         int maxOverlayHeight = (int) (screenHeight * 0.62f);
-        float liftOffset = -dp(activity, 92);
+        float liftOffset = -dp(activity, 56);
 
         List<View> headers = new ArrayList<>();
         List<View> overlays = new ArrayList<>();
@@ -469,6 +475,67 @@ public final class PixelMusicNavBarStyle {
                 }
             }
         }
+    }
+
+    private static boolean isReelsPlayerFullscreen(Activity activity, ViewGroup contentRoot, int screenHeight) {
+        if (!activity.hasWindowFocus() || contentRoot == null) {
+            return false;
+        }
+        if (hasOpenCommentOrSheet(contentRoot, screenHeight, 0)) {
+            return false;
+        }
+        int maxVideoHeight = findMaxVideoViewHeight(contentRoot, 0);
+        return maxVideoHeight <= 0 || maxVideoHeight >= (int) (screenHeight * 0.65f);
+    }
+
+    private static boolean hasOpenCommentOrSheet(View view, int screenHeight, int depth) {
+        if (view == null || view.getVisibility() != View.VISIBLE || depth > 24) {
+            return false;
+        }
+        if (view instanceof android.widget.EditText) {
+            return true;
+        }
+        if (view.getHeight() >= (int) (screenHeight * 0.25f) && view.getId() != View.NO_ID) {
+            try {
+                String name = view.getResources().getResourceEntryName(view.getId());
+                if (name != null) {
+                    String lower = name.toLowerCase(java.util.Locale.ROOT);
+                    if (lower.contains("comment") || lower.contains("bottom_sheet") || lower.contains("sheet_container")) {
+                        return true;
+                    }
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                if (hasOpenCommentOrSheet(group.getChildAt(i), screenHeight, depth + 1)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static int findMaxVideoViewHeight(View view, int depth) {
+        if (view == null || view.getVisibility() != View.VISIBLE || depth > 24) {
+            return 0;
+        }
+        if (view instanceof SurfaceView || view instanceof TextureView) {
+            return view.getHeight();
+        }
+        int max = 0;
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                int h = findMaxVideoViewHeight(group.getChildAt(i), depth + 1);
+                if (h > max) {
+                    max = h;
+                }
+            }
+        }
+        return max;
     }
 
     private static void scanReelsHierarchy(

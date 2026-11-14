@@ -830,6 +830,13 @@ public class ScreenBuilder {
         );
         addPreference(
                 helper.switchPreference(
+                        str("piko_feed_sound_by_default"),
+                        str("piko_feed_sound_by_default_desc"),
+                        Settings.FEED_SOUND_BY_DEFAULT
+                )
+        );
+        addPreference(
+                helper.switchPreference(
                         str("piko_rounded_top_header"),
                         str("piko_rounded_top_header_desc"),
                         Settings.ROUNDED_TOP_HEADER
