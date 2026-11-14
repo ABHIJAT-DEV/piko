@@ -94,6 +94,7 @@ public final class RoundedHeaderStyle {
                 if (clipsTabId != 0) {
                     View clipsTab = decor.findViewById(clipsTabId);
                     if (clipsTab != null && (clipsTab.isSelected() || clipsTab.isActivated())) {
+                        hideStatusStrip(state);
                         return;
                     }
                 }
@@ -111,7 +112,13 @@ public final class RoundedHeaderStyle {
                 }
                 int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
                 android.graphics.Rect rect = new android.graphics.Rect();
+                state.matchedTopInset = -1;
                 scanAndStyleHeaders(decor, headerIds, headerColor, radius, screenWidth, minHeight, maxHeight, maxTopY, maxDividerHeight, rect, state, 0);
+                if (state.matchedTopInset > 0) {
+                    showStatusStrip(activity, decor, state, state.matchedTopInset, headerColor);
+                } else {
+                    hideStatusStrip(state);
+                }
             };
 
             ViewTreeObserver vto = decor.getViewTreeObserver();
@@ -149,6 +156,9 @@ public final class RoundedHeaderStyle {
             if (w >= (int) (screenWidth * 0.90f) && h >= minHeight && h <= maxHeight) {
                 boolean idMatch = headerIds.contains(group.getId()) || hasHeaderLikeIdName(group);
                 if (idMatch && group.getGlobalVisibleRect(rect) && rect.top <= maxTopY) {
+                    if (state.matchedTopInset < 0 || rect.top < state.matchedTopInset) {
+                        state.matchedTopInset = rect.top;
+                    }
                     styleHeader(group, headerColor, radius, maxDividerHeight, state);
                     return;
                 }
@@ -222,28 +232,6 @@ public final class RoundedHeaderStyle {
             if (parentGroup.getClipToPadding()) {
                 parentGroup.setClipToPadding(false);
             }
-            if (parentGroup instanceof android.widget.LinearLayout
-                    && ((android.widget.LinearLayout) parentGroup).getOrientation() == android.widget.LinearLayout.VERTICAL
-                    && parentGroup.getPaddingTop() > 0) {
-                int pTop = parentGroup.getPaddingTop();
-                parentGroup.setPadding(
-                        parentGroup.getPaddingLeft(),
-                        0,
-                        parentGroup.getPaddingRight(),
-                        parentGroup.getPaddingBottom()
-                );
-                header.setPadding(
-                        header.getPaddingLeft(),
-                        header.getPaddingTop() + pTop,
-                        header.getPaddingRight(),
-                        header.getPaddingBottom()
-                );
-                ViewGroup.LayoutParams hlp = header.getLayoutParams();
-                if (hlp != null && hlp.height > 0) {
-                    hlp.height += pTop;
-                    header.setLayoutParams(hlp);
-                }
-            }
             if (Math.abs(parentGroup.getHeight() - header.getHeight()) <= dp(header.getContext(), 4)) {
                 Drawable pbg = parentGroup.getBackground();
                 if (pbg != null && (!(pbg instanceof ColorDrawable) || ((ColorDrawable) pbg).getColor() != Color.TRANSPARENT)) {
@@ -284,7 +272,52 @@ public final class RoundedHeaderStyle {
         );
     }
 
+    private static void showStatusStrip(Activity activity, View decor, HeaderState state, int heightPx, int color) {
+        if (!(decor instanceof ViewGroup)) {
+            return;
+        }
+        ViewGroup decorGroup = (ViewGroup) decor;
+        if (state.statusStrip == null) {
+            state.statusStrip = new View(activity);
+            state.statusStrip.setClickable(false);
+            state.statusStrip.setFocusable(false);
+            android.widget.FrameLayout.LayoutParams lp = new android.widget.FrameLayout.LayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    heightPx,
+                    android.view.Gravity.TOP
+            );
+            decorGroup.addView(state.statusStrip, lp);
+        } else {
+            if (state.statusStrip.getParent() != decorGroup) {
+                if (state.statusStrip.getParent() instanceof ViewGroup) {
+                    ((ViewGroup) state.statusStrip.getParent()).removeView(state.statusStrip);
+                }
+                decorGroup.addView(state.statusStrip);
+            }
+            ViewGroup.LayoutParams lp = state.statusStrip.getLayoutParams();
+            if (lp != null && lp.height != heightPx) {
+                lp.height = heightPx;
+                state.statusStrip.setLayoutParams(lp);
+            }
+        }
+        if (state.statusStrip.getVisibility() != View.VISIBLE) {
+            state.statusStrip.setVisibility(View.VISIBLE);
+        }
+        Drawable bg = state.statusStrip.getBackground();
+        if (!(bg instanceof ColorDrawable) || ((ColorDrawable) bg).getColor() != color) {
+            state.statusStrip.setBackgroundColor(color);
+        }
+    }
+
+    private static void hideStatusStrip(HeaderState state) {
+        if (state.statusStrip != null && state.statusStrip.getVisibility() != View.GONE) {
+            state.statusStrip.setVisibility(View.GONE);
+        }
+    }
+
     private static final class HeaderState {
         final Map<View, GradientDrawable> drawables = new WeakHashMap<>();
+        View statusStrip;
+        int matchedTopInset = -1;
     }
 }
