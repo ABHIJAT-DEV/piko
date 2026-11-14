@@ -6,8 +6,10 @@
 
 package app.morphe.extension.instagram.patches.dm;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.content.Intent;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -54,6 +56,7 @@ import app.morphe.extension.instagram.utils.Pref;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
+import app.morphe.extension.shared.Utils;
 
 /**
  * Replaces the DM composer sticker button (between gallery and plus) with a deleted-messages
@@ -243,13 +246,16 @@ public final class ChatDeletedOverlay {
 
     public static void showDeletedMessagesSheet(Context context) {
         try {
-            if (context == null) return;
+            Activity activity = resolveActivity(context);
+            if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
+                return;
+            }
             String threadId = SavedMessagesHook.getActiveThreadId();
             List<String[]> deleted = (threadId != null && !threadId.isEmpty())
-                    ? PikoMessageDb.getInstance(context).getDeletedMessagesForThread(threadId)
+                    ? PikoMessageDb.getInstance(activity).getDeletedMessagesForThread(threadId)
                     : new ArrayList<>();
 
-            Dialog dialog = new Dialog(context);
+            Dialog dialog = new Dialog(activity);
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
 
             boolean dark = UI.isDarkMode();
@@ -461,6 +467,17 @@ public final class ChatDeletedOverlay {
             default:
                 return content != null && !content.isEmpty() ? content : "[" + type + "]";
         }
+    }
+
+    private static Activity resolveActivity(Context context) {
+        Context c = context;
+        for (int i = 0; i < 8 && c instanceof ContextWrapper; i++) {
+            if (c instanceof Activity) {
+                return (Activity) c;
+            }
+            c = ((ContextWrapper) c).getBaseContext();
+        }
+        return Utils.getActivity();
     }
 
     private static int dp(Context context, float value) {
