@@ -1,3 +1,14 @@
+## [1.10.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.9.1...v1.10.0) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **feed:** pre-clip all feed media and carousels before layout/scroll ([6813f6a](https://github.com/ABHIJAT-DEV/piko/commit/6813f6a8be4c9d12f0bbef5856ecbd789428bda5))
+* **instagram:** invert black and white navbar colors between light and dark mode ([59bf541](https://github.com/ABHIJAT-DEV/piko/commit/59bf54144759578b36c3b3809005ed625207e2b6))
+
+### ✨ New Features
+
+* **dm:** replace sticker button with deleted messages icon and PixelMusic bottom sheet ([86efec9](https://github.com/ABHIJAT-DEV/piko/commit/86efec9c507d4000c72357f4a3c7d29fdc27363c))
+
 ## [1.9.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.9.0...v1.9.1) (2026-11-14)
 
 ### 🐛 Bug Fixes
