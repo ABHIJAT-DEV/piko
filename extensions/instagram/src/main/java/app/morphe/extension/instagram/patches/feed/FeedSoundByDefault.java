@@ -9,7 +9,9 @@ package app.morphe.extension.instagram.patches.feed;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.SystemClock;
 import android.util.TypedValue;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
@@ -44,15 +46,18 @@ public final class FeedSoundByDefault {
             "feed_video_audio_button",
             "sound_button",
             "audio_toggle_button",
-            "volume_icon"
+            "volume_icon",
+            "audio_indicator"
     };
     private static final String[] MEDIA_CONTAINER_IDS = {
             "media_group",
             "carousel_media_group",
+            "carousel_viewpager",
             "zoomable_view_container"
     };
     private static final Map<View, Boolean> ATTACHED_DECOR = new WeakHashMap<>();
     private static boolean sSessionUnmuted = false;
+    private static boolean sClickPending = false;
 
     private FeedSoundByDefault() {
     }
@@ -75,11 +80,13 @@ public final class FeedSoundByDefault {
             ATTACHED_DECOR.put(decor, Boolean.TRUE);
 
             final int feedTabId = ResourceUtils.getIdentifier(ResourceType.ID, "feed_tab");
-            final int minBtn = dp(activity, 16);
-            final int maxBtn = dp(activity, 48);
-            final int cornerMargin = dp(activity, 36);
-            final int minMediaSize = dp(activity, 180);
+            final int minBtn = dp(activity, 14);
+            final int maxBtn = dp(activity, 56);
+            final int cornerMargin = dp(activity, 44);
+            final int minMediaSize = dp(activity, 160);
+            final int navBarReserve = dp(activity, 80);
             final int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
+            final int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
 
             final Set<Integer> audioIds = new HashSet<>();
             for (String idName : AUDIO_BUTTON_IDS) {
@@ -98,7 +105,7 @@ public final class FeedSoundByDefault {
             }
 
             final Runnable checkAndUnmute = () -> {
-                if (sSessionUnmuted) {
+                if (sSessionUnmuted || sClickPending) {
                     return;
                 }
                 if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.FEED_SOUND_BY_DEFAULT))) {
@@ -114,10 +121,10 @@ public final class FeedSoundByDefault {
                     }
                 }
 
-                View candidate = findAudioButtonById(decor, audioIds, minBtn, maxBtn, 0);
+                View candidate = findAudioButtonByIdOrName(decor, audioIds, minBtn, maxBtn, screenHeight - navBarReserve, 0);
                 if (candidate == null) {
                     candidate = findBottomRightAudioButton(
-                            decor, mediaIds, screenWidth, minMediaSize, minBtn, maxBtn, cornerMargin, 0
+                            decor, mediaIds, screenWidth, screenHeight - navBarReserve, minMediaSize, minBtn, maxBtn, cornerMargin, 0
                     );
                 }
                 if (candidate == null) {
@@ -129,38 +136,65 @@ public final class FeedSoundByDefault {
                     return;
                 }
 
-                final View clickTarget = resolveClickableTarget(candidate, maxBtn);
-                if (clickTarget != null) {
-                    sSessionUnmuted = true;
-                    clickTarget.post(clickTarget::performClick);
-                }
+                final View target = resolveClickableTarget(candidate, maxBtn);
+                sClickPending = true;
+                target.postDelayed(() -> {
+                    sClickPending = false;
+                    if (sSessionUnmuted || !target.isAttachedToWindow() || !target.isShown()) {
+                        return;
+                    }
+                    if (isAlreadyUnmuted(target)) {
+                        sSessionUnmuted = true;
+                        return;
+                    }
+                    boolean clicked = target.isClickable() && target.performClick();
+                    if (!clicked) {
+                        clicked = dispatchTap(target);
+                    }
+                    if (clicked) {
+                        sSessionUnmuted = true;
+                    }
+                }, 200L);
             };
 
             ViewTreeObserver vto = decor.getViewTreeObserver();
             vto.addOnGlobalLayoutListener(checkAndUnmute::run);
             vto.addOnScrollChangedListener(checkAndUnmute::run);
-            decor.postDelayed(checkAndUnmute, 350L);
+            decor.postDelayed(checkAndUnmute, 450L);
         } catch (Throwable t) {
             Logger.printException(() -> "FeedSoundByDefault attach failed", t);
         }
     }
 
-    private static View findAudioButtonById(View view, Set<Integer> audioIds, int minBtn, int maxBtn, int depth) {
+    private static View findAudioButtonByIdOrName(
+            View view,
+            Set<Integer> audioIds,
+            int minBtn,
+            int maxBtn,
+            int maxBottomY,
+            int depth
+    ) {
         if (view == null || view.getVisibility() != View.VISIBLE || depth > 32) {
             return null;
         }
         int id = view.getId();
-        if (id != View.NO_ID && audioIds.contains(id)) {
+        if (id != View.NO_ID) {
             int w = view.getWidth();
             int h = view.getHeight();
             if (w >= minBtn && w <= maxBtn && h >= minBtn && h <= maxBtn) {
-                return view;
+                boolean match = audioIds.contains(id) || hasAudioIdName(view);
+                if (match) {
+                    Rect r = new Rect();
+                    if (view.getGlobalVisibleRect(r) && r.bottom <= maxBottomY && r.top > 0) {
+                        return view;
+                    }
+                }
             }
         }
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) {
-                View found = findAudioButtonById(group.getChildAt(i), audioIds, minBtn, maxBtn, depth + 1);
+                View found = findAudioButtonByIdOrName(group.getChildAt(i), audioIds, minBtn, maxBtn, maxBottomY, depth + 1);
                 if (found != null) {
                     return found;
                 }
@@ -169,26 +203,47 @@ public final class FeedSoundByDefault {
         return null;
     }
 
+    private static boolean hasAudioIdName(View view) {
+        try {
+            String name = view.getResources().getResourceEntryName(view.getId());
+            if (name == null) return false;
+            String lower = name.toLowerCase(Locale.ROOT);
+            if (lower.contains("voice") || lower.contains("mic") || lower.contains("tag")
+                    || lower.contains("profile") || lower.contains("avatar")
+                    || lower.contains("comment") || lower.contains("like")
+                    || lower.contains("share") || lower.contains("save")) {
+                return false;
+            }
+            return lower.contains("audio") || lower.contains("sound")
+                    || lower.contains("mute") || lower.contains("volume");
+        } catch (Throwable ignored) {
+            return false;
+        }
+    }
+
     private static View findBottomRightAudioButton(
             View view,
             Set<Integer> mediaIds,
             int screenWidth,
+            int maxBottomY,
             int minMediaSize,
             int minBtn,
             int maxBtn,
             int cornerMargin,
             int depth
     ) {
-        if (view == null || view.getVisibility() != View.VISIBLE || depth > 28) {
+        if (view == null || view.getVisibility() != View.VISIBLE || depth > 32) {
             return null;
         }
         int id = view.getId();
         if (id != View.NO_ID && mediaIds.contains(id)
-                && view.getWidth() >= (int) (screenWidth * 0.90f)
+                && view.getWidth() >= (int) (screenWidth * 0.85f)
                 && view.getHeight() >= minMediaSize
                 && view instanceof ViewGroup) {
             Rect mediaRect = new Rect();
-            if (view.getGlobalVisibleRect(mediaRect) && mediaRect.height() >= minMediaSize / 2) {
+            if (view.getGlobalVisibleRect(mediaRect)
+                    && mediaRect.height() >= minMediaSize / 2
+                    && mediaRect.bottom <= maxBottomY) {
                 View found = scanCornerButton((ViewGroup) view, mediaRect, minBtn, maxBtn, cornerMargin, 0);
                 if (found != null) {
                     return found;
@@ -199,7 +254,7 @@ public final class FeedSoundByDefault {
             ViewGroup group = (ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) {
                 View found = findBottomRightAudioButton(
-                        group.getChildAt(i), mediaIds, screenWidth, minMediaSize, minBtn, maxBtn, cornerMargin, depth + 1
+                        group.getChildAt(i), mediaIds, screenWidth, maxBottomY, minMediaSize, minBtn, maxBtn, cornerMargin, depth + 1
                 );
                 if (found != null) {
                     return found;
@@ -217,7 +272,7 @@ public final class FeedSoundByDefault {
             int cornerMargin,
             int depth
     ) {
-        if (depth > 8) {
+        if (depth > 10) {
             return null;
         }
         Rect vRect = new Rect();
@@ -234,13 +289,9 @@ public final class FeedSoundByDefault {
                         && vRect.top >= mediaRect.centerY()
                         && (mediaRect.right - vRect.right) <= cornerMargin
                         && (mediaRect.bottom - vRect.bottom) <= cornerMargin
-                        && hasAudioOrNeutralDescription(child)) {
-                    if (child instanceof ImageView || hasImageViewChild(child)) {
-                        View target = resolveClickableTarget(child, maxBtn);
-                        if (target != null) {
-                            return target;
-                        }
-                    }
+                        && hasAudioOrNeutralDescription(child)
+                        && (child instanceof ImageView || hasImageViewChild(child))) {
+                    return child;
                 }
             }
             if (child instanceof ViewGroup) {
@@ -251,6 +302,23 @@ public final class FeedSoundByDefault {
             }
         }
         return null;
+    }
+
+    private static boolean dispatchTap(View target) {
+        try {
+            long downTime = SystemClock.uptimeMillis();
+            float x = target.getWidth() / 2f;
+            float y = target.getHeight() / 2f;
+            MotionEvent down = MotionEvent.obtain(downTime, downTime, MotionEvent.ACTION_DOWN, x, y, 0);
+            MotionEvent up = MotionEvent.obtain(downTime, downTime + 40L, MotionEvent.ACTION_UP, x, y, 0);
+            boolean handled = target.dispatchTouchEvent(down);
+            handled = target.dispatchTouchEvent(up) || handled;
+            down.recycle();
+            up.recycle();
+            return handled;
+        } catch (Throwable ignored) {
+            return false;
+        }
     }
 
     private static boolean hasImageViewChild(View view) {
@@ -311,13 +379,14 @@ public final class FeedSoundByDefault {
             return view;
         }
         ViewParent p = view.getParent();
-        if (p instanceof View) {
+        for (int i = 0; i < 2 && p instanceof View; i++) {
             View pv = (View) p;
             if (pv.isClickable() && pv.getWidth() <= maxBtn * 2 && pv.getHeight() <= maxBtn * 2) {
                 return pv;
             }
+            p = pv.getParent();
         }
-        return null;
+        return view;
     }
 
     private static int dp(Context context, float value) {
