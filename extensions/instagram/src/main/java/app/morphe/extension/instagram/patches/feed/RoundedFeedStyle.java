@@ -17,7 +17,9 @@ import android.view.ViewOutlineProvider;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
 
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.WeakHashMap;
 
 import app.morphe.extension.crimera.sharedPreference.SharedPref;
@@ -28,7 +30,8 @@ import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 
 /**
- * Clips Home feed post media (photos, carousels, and videos) with rounded corners.
+ * Clips Home feed post media (photos, carousels, and videos) with rounded corners
+ * as soon as views are laid out or attached, before they scroll into view.
  */
 @SuppressWarnings("unused")
 public final class RoundedFeedStyle {
@@ -63,6 +66,14 @@ public final class RoundedFeedStyle {
             final int minMediaSize = dp(activity, 180);
             final int feedTabId = ResourceUtils.getIdentifier(ResourceType.ID, "feed_tab");
 
+            final Set<Integer> targetIds = new HashSet<>();
+            for (String idName : MEDIA_CONTAINER_IDS) {
+                int id = ResourceUtils.getIdentifier(ResourceType.ID, idName);
+                if (id != 0) {
+                    targetIds.add(id);
+                }
+            }
+
             final ViewOutlineProvider provider = new ViewOutlineProvider() {
                 @Override
                 public void getOutline(View view, Outline outline) {
@@ -74,84 +85,64 @@ public final class RoundedFeedStyle {
                 }
             };
 
-            decor.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
-                @Override
-                public boolean onPreDraw() {
-                    if (!decor.isAttachedToWindow()) {
-                        return true;
-                    }
-                    if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.ROUNDED_FEED_MEDIA))) {
-                        return true;
-                    }
-                    if (feedTabId != 0) {
-                        View feedTab = decor.findViewById(feedTabId);
-                        if (feedTab != null && !feedTab.isSelected() && !feedTab.isActivated()) {
-                            return true;
-                        }
-                    }
-                    int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
-                    int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
-                    applyToFeedMedia(decor, provider, screenWidth, screenHeight, minMediaSize);
-                    return true;
+            final Runnable applyPass = () -> {
+                if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.ROUNDED_FEED_MEDIA))) {
+                    return;
                 }
+                if (feedTabId != 0) {
+                    View feedTab = decor.findViewById(feedTabId);
+                    if (feedTab != null && !feedTab.isSelected() && !feedTab.isActivated()) {
+                        return;
+                    }
+                }
+                int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
+                int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
+                scanAndClip(decor, targetIds, provider, screenWidth, screenHeight, minMediaSize, 0);
+            };
+
+            ViewTreeObserver vto = decor.getViewTreeObserver();
+            vto.addOnGlobalLayoutListener(applyPass::run);
+            vto.addOnScrollChangedListener(applyPass::run);
+            vto.addOnPreDrawListener(() -> {
+                if (decor.isAttachedToWindow()) {
+                    applyPass.run();
+                }
+                return true;
             });
         } catch (Throwable t) {
             Logger.printException(() -> "RoundedFeedStyle attach failed", t);
         }
     }
 
-    private static void applyToFeedMedia(
-            View root,
-            ViewOutlineProvider provider,
-            int screenWidth,
-            int screenHeight,
-            int minMediaSize
-    ) {
-        boolean matchedById = false;
-        for (String idName : MEDIA_CONTAINER_IDS) {
-            int id = ResourceUtils.getIdentifier(ResourceType.ID, idName);
-            if (id != 0) {
-                View target = root.findViewById(id);
-                if (target != null && target.isShown()
-                        && target.getWidth() >= (int) (screenWidth * 0.90f)
-                        && target.getHeight() >= minMediaSize) {
-                    clipRounded(target, provider);
-                    matchedById = true;
-                }
-            }
-        }
-        if (matchedById) {
-            // Also scan visible RecyclerView items for Litho-rendered feed posts.
-            scanForMediaViews(root, provider, screenWidth, screenHeight, minMediaSize, 0);
-        } else {
-            scanForMediaViews(root, provider, screenWidth, screenHeight, minMediaSize, 0);
-        }
-    }
-
-    private static void scanForMediaViews(
+    private static void scanAndClip(
             View view,
+            Set<Integer> targetIds,
             ViewOutlineProvider provider,
             int screenWidth,
             int screenHeight,
             int minMediaSize,
             int depth
     ) {
-        if (view == null || !view.isShown() || depth > 14) {
+        if (view == null || view.getVisibility() != View.VISIBLE || depth > 32) {
             return;
         }
         int w = view.getWidth();
         int h = view.getHeight();
-        if (w >= (int) (screenWidth * 0.92f)
+        boolean sizeMatches = w >= (int) (screenWidth * 0.90f)
                 && h >= minMediaSize
-                && h <= (int) (screenHeight * 0.85f)
-                && (view instanceof ImageView || view instanceof TextureView)) {
+                && h <= (int) (screenHeight * 0.85f);
+
+        if (sizeMatches && (targetIds.contains(view.getId())
+                || view instanceof ImageView
+                || view instanceof TextureView)) {
             clipRounded(view, provider);
             return;
         }
+
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             for (int i = 0; i < group.getChildCount(); i++) {
-                scanForMediaViews(group.getChildAt(i), provider, screenWidth, screenHeight, minMediaSize, depth + 1);
+                scanAndClip(group.getChildAt(i), targetIds, provider, screenWidth, screenHeight, minMediaSize, depth + 1);
             }
         }
     }
@@ -159,6 +150,7 @@ public final class RoundedFeedStyle {
     private static void clipRounded(View view, ViewOutlineProvider provider) {
         if (view.getOutlineProvider() != provider) {
             view.setOutlineProvider(provider);
+            view.invalidateOutline();
         }
         if (!view.getClipToOutline()) {
             view.setClipToOutline(true);
