@@ -1,3 +1,9 @@
+## [1.11.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.0...v1.11.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** refine Reels sheet detection and trigger v1.11.1 release ([8aeb924](https://github.com/ABHIJAT-DEV/piko/commit/8aeb9243230c8f2c021fa88267faa263cc248df7))
+
 ## [1.11.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.10.0...v1.11.0) (2026-11-14)
 
 ### ✨ New Features
