@@ -185,9 +185,8 @@ public final class SettingsSearchController {
     public View createSearchEntryView() {
         FrameLayout entry = new FrameLayout(context);
         entry.setPaddingRelative(
-                InstagramPreferenceStyle.dp(context, 16), 0,
-                InstagramPreferenceStyle.dp(context, 16),
-                InstagramPreferenceStyle.dp(context, 10)
+                0, 0, 0,
+                InstagramPreferenceStyle.dp(context, 12)
         );
         entry.setContentDescription(str("piko_settings_search_hint"));
         entry.setFocusable(true);
@@ -221,7 +220,7 @@ public final class SettingsSearchController {
         bar.setLayoutDirection(View.LAYOUT_DIRECTION_LOCALE);
         GradientDrawable background = new GradientDrawable();
         background.setColor(InstagramPreferenceStyle.searchBackgroundColor());
-        background.setCornerRadius(InstagramPreferenceStyle.dp(context, 12));
+        background.setCornerRadius(InstagramPreferenceStyle.dp(context, 28));
         bar.setBackground(background);
         ImageView icon = new ImageView(context);
         icon.setScaleType(ImageView.ScaleType.FIT_CENTER);

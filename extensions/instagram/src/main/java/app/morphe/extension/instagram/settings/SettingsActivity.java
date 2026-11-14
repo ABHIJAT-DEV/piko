@@ -291,9 +291,9 @@ public final class SettingsActivity {
 
             titleTextView = new TextView(activity);
             titleTextView.setText(displayTitle); // Dynamically bound from intent data
-            int titleTextSize = isRootSettings ? 25 : 20;
+            int titleTextSize = isRootSettings ? 24 : 20;
             titleTextView.setTextSize(TypedValue.COMPLEX_UNIT_SP, titleTextSize);
-            titleTextView.setTypeface(Typeface.create("sans-serif", Typeface.NORMAL));
+            titleTextView.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
             titleTextView.setIncludeFontPadding(false);
             titleTextView.setMaxLines(1);
             titleTextView.setTextDirection(View.TEXT_DIRECTION_LOCALE);
@@ -753,10 +753,11 @@ public final class SettingsActivity {
                 }
             }
             if (listView != null) {
-                listView.setPadding(0, InstagramPreferenceStyle.dp(context, 10), 0, InstagramPreferenceStyle.dp(context, 10));
+                int sidePadding = InstagramPreferenceStyle.dp(context, 16);
+                listView.setPadding(sidePadding, InstagramPreferenceStyle.dp(context, 8), sidePadding, InstagramPreferenceStyle.dp(context, 24));
                 listView.setClipToPadding(false);
-                listView.setDivider(null);
-                listView.setDividerHeight(0);
+                listView.setDivider(new ColorDrawable(Color.TRANSPARENT));
+                listView.setDividerHeight(InstagramPreferenceStyle.dp(context, 2));
                 listView.setSelector(new ColorDrawable(Color.TRANSPARENT));
                 listView.setCacheColorHint(Color.TRANSPARENT);
                 listView.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
@@ -823,9 +824,10 @@ public final class SettingsActivity {
                         listView.addHeaderView(searchEntryView, null, false);
                         searchEntryAdded = true;
                     }
-                    listView.setPadding(0,
-                            InstagramPreferenceStyle.dp(context, state.searchMode ? 10 : 0),
-                            0, InstagramPreferenceStyle.dp(context, 10));
+                    int sidePadding = InstagramPreferenceStyle.dp(context, 16);
+                    listView.setPadding(sidePadding,
+                            InstagramPreferenceStyle.dp(context, state.searchMode ? 8 : 4),
+                            sidePadding, InstagramPreferenceStyle.dp(context, 24));
                 }
                 screen.bind(listView);
             }

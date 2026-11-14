@@ -155,5 +155,6 @@ public class FocusLockDurationPreference extends Preference {
             showValue(seekBar.getProgress());
         }
         view.setEnabled(enabled);
+        InstagramPreferenceStyle.applyCardShapeForPreference(this, view);
     }
 }

@@ -141,6 +141,11 @@ val settingsPatch =
                 )
             }
 
+            IgFragmentActivityOnResume.method.addInstruction(
+                IgFragmentActivityOnResume.instructionMatches.first().index + 1,
+                "invoke-static {p0}, $ACTIVITY_SETTINGS_CLASS/HomeButtonShortcut;->attach(Landroid/app/Activity;)V",
+            )
+
             ModalActivityOnCreate.method.apply {
                 val overrideIndex = indexOfFirstInstructionOrThrow {
                     opcode == Opcode.INVOKE_SUPER &&

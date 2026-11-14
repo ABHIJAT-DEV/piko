@@ -37,8 +37,8 @@ public class CategoryPref extends PreferenceCategory {
     @Override
     protected View onCreateView(ViewGroup parent) {
         TextView title = new TextView(getContext());
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 15);
-        title.setTypeface(Typeface.DEFAULT, Typeface.BOLD);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13);
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
         applyCategoryStyle(title);
         title.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
@@ -51,19 +51,19 @@ public class CategoryPref extends PreferenceCategory {
     protected void onBindView(View view) {
         TextView title = (TextView) view;
         title.setText(getTitle());
-        title.setTextColor(InstagramPreferenceStyle.primaryTextColor());
+        title.setTextColor(InstagramPreferenceStyle.selectionColor());
         applyCategoryStyle(title);
         title.setEnabled(isEnabled());
     }
 
     private void applyCategoryStyle(TextView title) {
-        int topPadding = firstCategory ? 20 : 30;
+        int topPadding = firstCategory ? 8 : 18;
         title.setPadding(
-                InstagramPreferenceStyle.dp(getContext(), 15),
+                InstagramPreferenceStyle.dp(getContext(), 12),
                 InstagramPreferenceStyle.dp(getContext(), topPadding),
-                InstagramPreferenceStyle.dp(getContext(), 15),
-                InstagramPreferenceStyle.dp(getContext(), 10)
+                InstagramPreferenceStyle.dp(getContext(), 12),
+                InstagramPreferenceStyle.dp(getContext(), 6)
         );
-        title.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
+        title.setBackgroundColor(android.graphics.Color.TRANSPARENT);
     }
 }

@@ -137,9 +137,11 @@ public class ButtonPref extends Preference {
     @Override
     protected void onBindView(View view) {
         String key = getKey();
+        String iconResName = iconResourceNameForKey(key);
+        InstagramPreferenceStyle.bindIcon(view, iconResName, key);
         InstagramPreferenceStyle.bindText(this, view);
-        InstagramPreferenceStyle.bindIcon(view, iconResourceNameForKey(key));
-        InstagramPreferenceStyle.setTrailingVisible(view, hasVisibleTrail(key));
+        // Hide trailing chevron on root category cards (PixelMusic ExpressiveCategoryItem style)
+        InstagramPreferenceStyle.setTrailingVisible(view, iconResName == null && hasVisibleTrail(key));
         InstagramPreferenceStyle.setPressedHighlightEnabled(
                 view,
                 pressedHighlightEnabled

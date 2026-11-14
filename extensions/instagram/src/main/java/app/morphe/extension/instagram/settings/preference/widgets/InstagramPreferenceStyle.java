@@ -12,13 +12,18 @@ import android.content.ContextWrapper;
 import android.content.res.Configuration;
 import android.content.res.TypedArray;
 import android.graphics.Canvas;
+import android.content.res.ColorStateList;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
 import android.graphics.Rect;
 import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.RippleDrawable;
 import android.preference.Preference;
+import android.preference.PreferenceCategory;
+import android.preference.PreferenceGroup;
 import android.text.TextUtils;
 import android.util.TypedValue;
 import android.view.ContextThemeWrapper;
@@ -132,20 +137,121 @@ public final class InstagramPreferenceStyle {
         return UI.getBackgroundColor();
     }
 
+    public static int surfaceContainerColor() {
+        if (UI.isDarkMode()) {
+            return backgroundColor() == Color.BLACK ? 0xFF141518 : 0xFF1E2024;
+        }
+        return 0xFFF2F3F7;
+    }
+
+    public static int surfaceContainerHighColor() {
+        if (UI.isDarkMode()) {
+            return backgroundColor() == Color.BLACK ? 0xFF1F2126 : 0xFF282A2F;
+        }
+        return 0xFFE6E8EE;
+    }
+
     public static int pressedBackgroundColor() {
-        int fallback = UI.getThemedColour("igds_color_secondary_background");
-        return ResourceUtils.getColor("igds_elevated_highlight_background", fallback);
+        return UI.isDarkMode() ? 0x26FFFFFF : 0x1A000000;
     }
 
     public static int searchBackgroundColor() {
-        int themedBackground = backgroundColor();
-        int luminance = 299 * Color.red(themedBackground)
-                + 587 * Color.green(themedBackground)
-                + 114 * Color.blue(themedBackground);
-        if (luminance < 128000) {
-            return Color.rgb(43, 48, 54);
+        return surfaceContainerHighColor();
+    }
+
+    public static int[] categoryColors(String key) {
+        boolean dark = UI.isDarkMode();
+        if (key == null) {
+            return dark
+                    ? new int[]{0xFF004A77, 0xFFC2E7FF}
+                    : new int[]{0xFFD7E3FF, 0xFF005AC1};
         }
-        return Color.rgb(241, 242, 246);
+        switch (key) {
+            case "piko_frag_ads":
+                return dark ? new int[]{0xFF6E1B1B, 0xFFFFDAD9} : new int[]{0xFFFFDAD9, 0xFF6E1B1B};
+            case "piko_frag_filter_content":
+                return dark ? new int[]{0xFF005049, 0xFF88FFD9} : new int[]{0xFF88FFD9, 0xFF005049};
+            case "piko_frag_ghost":
+                return dark ? new int[]{0xFF3B4869, 0xFFD9E2FF} : new int[]{0xFFD9E2FF, 0xFF27304E};
+            case "piko_frag_dm":
+                return dark ? new int[]{0xFF004A77, 0xFFC2E7FF} : new int[]{0xFFD7E3FF, 0xFF005AC1};
+            case "piko_frag_story":
+                return dark ? new int[]{0xFF7D5260, 0xFFFFD8E4} : new int[]{0xFFFFD8E4, 0xFF631835};
+            case "piko_frag_links":
+                return dark ? new int[]{0xFF004F58, 0xFF88FAFF} : new int[]{0xFFCCE8EA, 0xFF004F58};
+            case "piko_frag_distraction_free":
+                return dark ? new int[]{0xFF1E4E3E, 0xFFA7F0D0} : new int[]{0xFFA7F0D0, 0xFF00513B};
+            case "piko_frag_misc":
+                return dark ? new int[]{0xFF633B48, 0xFFFFD8EC} : new int[]{0xFFFFD8EC, 0xFF631B4B};
+            case "piko_frag_download_media":
+                return dark ? new int[]{0xFF004D61, 0xFFACEFEE} : new int[]{0xFFACEFEE, 0xFF002022};
+            case "piko_frag_instants":
+                return dark ? new int[]{0xFF6E4E13, 0xFFFFDEAC} : new int[]{0xFFFFDEAC, 0xFF281900};
+            case "piko_frag_action_bar":
+                return dark ? new int[]{0xFF4A3C6E, 0xFFE8DDFF} : new int[]{0xFFE8DDFF, 0xFF342557};
+            case "piko_frag_nav_btns":
+                return dark ? new int[]{0xFF004A77, 0xFFC2E7FF} : new int[]{0xFFD7E3FF, 0xFF005AC1};
+            case "piko_frag_dev_options":
+                return dark ? new int[]{0xFF324F34, 0xFFCBEFD0} : new int[]{0xFFCBEFD0, 0xFF042106};
+            case "piko_frag_about":
+            default:
+                return dark ? new int[]{0xFF3F474D, 0xFFDEE3EB} : new int[]{0xFFEFF1F7, 0xFF44474F};
+        }
+    }
+
+    public static void applyCardShapeForPreference(Preference preference, View view) {
+        if (preference == null || view == null) {
+            return;
+        }
+        boolean isFirst = true;
+        boolean isLast = true;
+        PreferenceGroup parent = preference.getParent();
+        if (parent != null) {
+            int count = parent.getPreferenceCount();
+            int index = -1;
+            for (int i = 0; i < count; i++) {
+                if (parent.getPreference(i) == preference) {
+                    index = i;
+                    break;
+                }
+            }
+            if (index >= 0) {
+                isFirst = index == 0 || parent.getPreference(index - 1) instanceof PreferenceCategory;
+                isLast = index == count - 1 || parent.getPreference(index + 1) instanceof PreferenceCategory;
+            }
+        }
+        applyCardBackground(view, isFirst, isLast, preference.isSelectable());
+    }
+
+    public static void applyCardBackground(View view, boolean isFirst, boolean isLast, boolean clickable) {
+        Context context = view.getContext();
+        float outer = dp(context, 24);
+        float inner = dp(context, 6);
+        float top = isFirst ? outer : inner;
+        float bottom = isLast ? outer : inner;
+        float[] radii = new float[]{
+                top, top, top, top,
+                bottom, bottom, bottom, bottom
+        };
+
+        GradientDrawable content = new GradientDrawable();
+        content.setColor(surfaceContainerColor());
+        content.setCornerRadii(radii);
+
+        if (clickable) {
+            GradientDrawable mask = new GradientDrawable();
+            mask.setColor(Color.WHITE);
+            mask.setCornerRadii(radii);
+            RippleDrawable ripple = new RippleDrawable(
+                    ColorStateList.valueOf(pressedBackgroundColor()),
+                    content,
+                    mask
+            );
+            view.setBackground(ripple);
+        } else {
+            view.setBackground(content);
+        }
+        view.setClipToOutline(true);
     }
 
     public static int primaryTextColor() {
@@ -190,64 +296,16 @@ public final class InstagramPreferenceStyle {
 
     public static View createPreferenceView(Context context, int trailingType, String iconResName) {
         PreferenceRow row = new PreferenceRow(context, trailingType);
-        row.setOrientation(trailingType == TRAILING_SWITCH ? LinearLayout.VERTICAL : LinearLayout.HORIZONTAL);
+        row.setOrientation(LinearLayout.HORIZONTAL);
         row.setGravity(Gravity.CENTER_VERTICAL);
-        row.setPadding(dp(context, 15), dp(context, 10), dp(context, 15), dp(context, 10));
-        row.setBackgroundColor(backgroundColor());
+        row.setPadding(dp(context, 16), dp(context, 14), dp(context, 16), dp(context, 14));
         row.setLayoutParams(new ViewGroup.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
                 ViewGroup.LayoutParams.WRAP_CONTENT
         ));
 
-        if(iconResName!=null){
+        if (iconResName != null) {
             row.setIcon(iconResName);
-        }
-
-        if (trailingType == TRAILING_SWITCH) {
-            LinearLayout titleRow = new LinearLayout(context);
-            titleRow.setOrientation(LinearLayout.HORIZONTAL);
-            titleRow.setGravity(Gravity.CENTER_VERTICAL);
-            row.addView(titleRow, new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            ));
-            row.setHighlightView(titleRow);
-
-            TextView title = new TextView(context);
-            title.setTag(TAG_TITLE);
-            title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
-            title.setTextColor(primaryTextColor());
-            title.setIncludeFontPadding(true);
-            title.setSingleLine(false);
-            alignTextToLocaleStart(title);
-            LinearLayout.LayoutParams titleParams = new LinearLayout.LayoutParams(
-                    0,
-                    LinearLayout.LayoutParams.WRAP_CONTENT,
-                    1f
-            );
-            titleParams.setMarginEnd(dp(context, 14));
-            titleRow.addView(title, titleParams);
-
-            CompoundButton switchView = createNativeSwitch(nativeSwitchContext(context));
-            switchView.setClickable(false);
-            switchView.setFocusable(false);
-            switchView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
-            switchView.setTag(TAG_SWITCH);
-            titleRow.addView(switchView, new LinearLayout.LayoutParams(dp(context, 52), dp(context, 32)));
-
-            TextView summary = new TextView(context);
-            summary.setTag(TAG_SUMMARY);
-            summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
-            summary.setTextColor(secondaryTextColor());
-            summary.setLineSpacing(dp(context, 1), 1.0f);
-            alignTextToLocaleStart(summary);
-            summary.setPadding(0, dp(context, 10), 0, 0);
-            row.addView(summary, new LinearLayout.LayoutParams(
-                    LinearLayout.LayoutParams.MATCH_PARENT,
-                    LinearLayout.LayoutParams.WRAP_CONTENT
-            ));
-
-            return row;
         }
 
         LinearLayout textColumn = new LinearLayout(context);
@@ -260,14 +318,15 @@ public final class InstagramPreferenceStyle {
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 1f
         );
-        textParams.setMarginEnd(dp(context, 14));
+        textParams.setMarginEnd(dp(context, 12));
         row.addView(textColumn, textParams);
 
         TextView title = new TextView(context);
         title.setTag(TAG_TITLE);
-        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 18);
+        title.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16.5f);
+        title.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
         title.setTextColor(primaryTextColor());
-        title.setIncludeFontPadding(true);
+        title.setIncludeFontPadding(false);
         title.setSingleLine(false);
         alignTextToLocaleStart(title);
         textColumn.addView(title, new LinearLayout.LayoutParams(
@@ -277,17 +336,24 @@ public final class InstagramPreferenceStyle {
 
         TextView summary = new TextView(context);
         summary.setTag(TAG_SUMMARY);
-        summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 14);
+        summary.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
         summary.setTextColor(secondaryTextColor());
         summary.setLineSpacing(dp(context, 1), 1.0f);
         alignTextToLocaleStart(summary);
-        summary.setPadding(0, dp(context, 10), 0, 0);
+        summary.setPadding(0, dp(context, 3), 0, 0);
         textColumn.addView(summary, new LinearLayout.LayoutParams(
                 LinearLayout.LayoutParams.MATCH_PARENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
         ));
 
-        if (trailingType == TRAILING_CHEVRON) {
+        if (trailingType == TRAILING_SWITCH) {
+            CompoundButton switchView = createNativeSwitch(nativeSwitchContext(context));
+            switchView.setClickable(false);
+            switchView.setFocusable(false);
+            switchView.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_NO);
+            switchView.setTag(TAG_SWITCH);
+            row.addView(switchView, new LinearLayout.LayoutParams(dp(context, 52), dp(context, 32)));
+        } else if (trailingType == TRAILING_CHEVRON) {
             ImageView trailing = new ImageView(context);
             trailing.setTag(TAG_TRAILING);
             UI.setThemedIcon(
@@ -298,7 +364,7 @@ public final class InstagramPreferenceStyle {
                     "igds_color_secondary_icon"
             );
             trailing.setScaleType(ImageView.ScaleType.CENTER);
-            row.addView(trailing, new LinearLayout.LayoutParams(dp(context, 22), dp(context, 34)));
+            row.addView(trailing, new LinearLayout.LayoutParams(dp(context, 20), dp(context, 28)));
         }
 
         return row;
@@ -405,6 +471,7 @@ public final class InstagramPreferenceStyle {
             view.setAlpha(enabled ? 1.0f : 0.5f);
         }
         view.setEnabled(enabled);
+        applyCardShapeForPreference(preference, view);
     }
 
     public static void bindSearchResult(
@@ -469,8 +536,12 @@ public final class InstagramPreferenceStyle {
     }
 
     public static void bindIcon(View view, String iconResName) {
+        bindIcon(view, iconResName, null);
+    }
+
+    public static void bindIcon(View view, String iconResName, String preferenceKey) {
         if (view instanceof PreferenceRow) {
-            ((PreferenceRow) view).setIcon(iconResName);
+            ((PreferenceRow) view).setIcon(iconResName, preferenceKey);
         }
     }
 
@@ -657,6 +728,7 @@ public final class InstagramPreferenceStyle {
         private boolean drawDragHighlight;
         private int dragOverlayColor;
         private boolean switchAccessibilityChecked;
+        private FrameLayout iconContainer;
         private ImageView iconView;
 
 
@@ -677,34 +749,47 @@ public final class InstagramPreferenceStyle {
         }
 
         private void initIconView(Context context) {
+            iconContainer = new FrameLayout(context);
+            int badgeSize = dp(context, 48);
+            LinearLayout.LayoutParams containerParams = new LinearLayout.LayoutParams(badgeSize, badgeSize);
+            containerParams.setMarginEnd(dp(context, 16));
+            iconContainer.setLayoutParams(containerParams);
+
             iconView = new ImageView(context);
-
-            int iconSize = dp(context, 24);
-            LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(iconSize, iconSize);
-
-            params.setMarginStart(dp(context, 16));
-            params.setMarginEnd(dp(context, 16));
-            iconView.setLayoutParams(params);
-
+            int iconSize = dp(context, 22);
+            FrameLayout.LayoutParams iconParams = new FrameLayout.LayoutParams(iconSize, iconSize, Gravity.CENTER);
+            iconView.setLayoutParams(iconParams);
             iconView.setScaleType(ImageView.ScaleType.FIT_CENTER);
-            addView(iconView, 0);
+            iconContainer.addView(iconView);
+
+            addView(iconContainer, 0);
         }
 
         void setIcon(String iconResName) {
-            int horizontalPadding = dp(getContext(), iconResName != null ? 10 : 15);
-            setPadding(horizontalPadding, getPaddingTop(), horizontalPadding, getPaddingBottom());
+            setIcon(iconResName, null);
+        }
+
+        void setIcon(String iconResName, String preferenceKey) {
+            setPadding(dp(getContext(), 16), dp(getContext(), 14), dp(getContext(), 16), dp(getContext(), 14));
             if (iconResName == null) {
-                if (iconView != null) {
+                if (iconContainer != null) {
                     iconView.setImageDrawable(null);
-                    iconView.setVisibility(View.GONE);
+                    iconContainer.setVisibility(View.GONE);
                 }
                 return;
             }
-            if (iconView == null) {
+            if (iconContainer == null) {
                 initIconView(getContext());
             }
+            int[] colors = categoryColors(preferenceKey);
+            GradientDrawable circle = new GradientDrawable();
+            circle.setShape(GradientDrawable.OVAL);
+            circle.setColor(colors[0]);
+            iconContainer.setBackground(circle);
+
             UI.setThemedIcon(iconView, iconResName);
-            iconView.setVisibility(View.VISIBLE);
+            iconView.setColorFilter(new PorterDuffColorFilter(colors[1], PorterDuff.Mode.SRC_ATOP));
+            iconContainer.setVisibility(View.VISIBLE);
         }
 
         void setHighlightView(View highlightView) {
@@ -752,10 +837,9 @@ public final class InstagramPreferenceStyle {
         }
 
         void setHasSummary(boolean hasSummary) {
-            int topPadding = dp(getContext(), topPaddingDp(trailingType, hasSummary));
-            int bottomPadding = dp(getContext(), bottomPaddingDp(trailingType, hasSummary));
-            setMinimumHeight(dp(getContext(), hasSummary ? 80 : 64));
-            setPadding(getPaddingLeft(), topPadding, getPaddingRight(), bottomPadding);
+            int verticalPadding = dp(getContext(), hasSummary ? 14 : 16);
+            setMinimumHeight(dp(getContext(), iconContainer != null && iconContainer.getVisibility() == View.VISIBLE ? 76 : (hasSummary ? 70 : 58)));
+            setPadding(getPaddingLeft(), verticalPadding, getPaddingRight(), verticalPadding);
         }
 
         @Override
@@ -805,14 +889,10 @@ public final class InstagramPreferenceStyle {
 
         @Override
         protected void dispatchDraw(Canvas canvas) {
-            if (drawPressedHighlight || drawDragHighlight) {
+            if (drawDragHighlight) {
                 pressedPaint.setStyle(Paint.Style.FILL);
-                pressedPaint.setColor(
-                        drawDragHighlight ? dragOverlayColor : pressedBackgroundColor()
-                );
-                int top = highlightTop();
-                int bottom = highlightBottom();
-                canvas.drawRect(0, top, getWidth(), bottom, pressedPaint);
+                pressedPaint.setColor(dragOverlayColor);
+                canvas.drawRect(0, 0, getWidth(), getHeight(), pressedPaint);
             }
             super.dispatchDraw(canvas);
         }
