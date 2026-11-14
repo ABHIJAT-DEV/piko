@@ -141,9 +141,12 @@ val settingsPatch =
                 )
             }
 
-            IgFragmentActivityOnResume.method.addInstruction(
+            IgFragmentActivityOnResume.method.addInstructions(
                 IgFragmentActivityOnResume.instructionMatches.first().index + 1,
-                "invoke-static {p0}, $ACTIVITY_SETTINGS_CLASS/HomeButtonShortcut;->attach(Landroid/app/Activity;)V",
+                """
+                    invoke-static {p0}, $ACTIVITY_SETTINGS_CLASS/HomeButtonShortcut;->attach(Landroid/app/Activity;)V
+                    invoke-static {p0}, $PATCHES_DESCRIPTOR/navigation/PixelMusicNavBarStyle;->attach(Landroid/app/Activity;)V
+                """.trimIndent(),
             )
 
             ModalActivityOnCreate.method.apply {

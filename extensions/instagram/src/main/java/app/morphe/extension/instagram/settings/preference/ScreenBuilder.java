@@ -1059,6 +1059,14 @@ public class ScreenBuilder {
                         str("piko_navigation_startup_tab_summary")
                 )
         );
+
+        addPreference(
+                helper.switchPreference(
+                        str("piko_nav_bar_pixelmusic_style"),
+                        str("piko_nav_bar_pixelmusic_style_desc"),
+                        Settings.NAV_BAR_PIXELMUSIC_STYLE
+                )
+        );
     }
 
     public void buildRecommendedFlagsSection() {

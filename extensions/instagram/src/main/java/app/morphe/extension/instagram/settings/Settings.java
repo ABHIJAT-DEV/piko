@@ -117,6 +117,7 @@ public class Settings {
     public static final BooleanSetting HIDE_NAVIGATION_SEARCH = new BooleanSetting("hide_navigation_search", false, NOT_REQUIRED);
     public static final BooleanSetting HIDE_NAVIGATION_CREATE = new BooleanSetting("hide_navigation_create", false, NOT_REQUIRED);
     public static final StringSetting NAVIGATION_TABS = new StringSetting("navigation_tabs", "", REQUIRED);
+    public static final BooleanSetting NAV_BAR_PIXELMUSIC_STYLE = new BooleanSetting("nav_bar_pixelmusic_style", true, NOT_REQUIRED);
     public static final BooleanSetting HIDE_HOME_CREATE_BUTTON = new BooleanSetting("hide_home_create_button", false, NOT_REQUIRED);
     public static final BooleanSetting HIDE_HOME_NOTIFICATIONS_BUTTON = new BooleanSetting("hide_home_notifications_button", false, NOT_REQUIRED);
 
