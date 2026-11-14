@@ -11,21 +11,30 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.Rect;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
 import android.util.TypedValue;
+import android.view.SurfaceView;
+import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
+import android.view.Window;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -39,7 +48,8 @@ import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 
 /**
- * Styles Instagram's bottom navigation bar as a PixelMusic-inspired floating pill toolbar.
+ * Styles Instagram's bottom navigation bar as a PixelMusic-inspired floating pill toolbar,
+ * and adapts Reels to edge-to-edge full-screen playback.
  */
 @SuppressWarnings("unused")
 public final class PixelMusicNavBarStyle {
@@ -176,12 +186,12 @@ public final class PixelMusicNavBarStyle {
             }
         }
 
-        boolean tabBarIsDirectContentSibling = clearParentBlockAndAdjustContent(
+        ViewGroup contentRoot = clearParentBlockAndExpandContent(
                 activity,
                 tabBar,
                 pillHeight,
                 bMargin,
-                isReelsSelected
+                state
         );
 
         ViewGroup.LayoutParams lp = tabBar.getLayoutParams();
@@ -193,7 +203,7 @@ public final class PixelMusicNavBarStyle {
             }
             if (lp instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
-                int targetTopMargin = (!isReelsSelected && tabBarIsDirectContentSibling)
+                int targetTopMargin = state.tabBarDirectInVerticalLinear
                         ? -(pillHeight + bMargin)
                         : dp(activity, 4);
                 if (mlp.leftMargin != hMargin || mlp.rightMargin != hMargin
@@ -209,6 +219,8 @@ public final class PixelMusicNavBarStyle {
                 tabBar.setLayoutParams(lp);
             }
         }
+
+        applyReelsFullscreenLayout(activity, contentRoot, isReelsSelected, state);
 
         boolean needsTabRestyle = backgroundOverwritten
                 || themeChanged
@@ -264,32 +276,27 @@ public final class PixelMusicNavBarStyle {
     }
 
     /**
-     * Clears solid backgrounds and dividers on ancestor wrappers and expands the main content
-     * container behind the floating pill on non-Reels tabs. On Reels, keeps the content above
-     * the pill so username, caption, and action buttons stay visible while the progress bar
-     * remains at the bottom of the Reel.
+     * Clears solid backgrounds and dividers on all ancestor wrappers and expands the main
+     * content container behind the floating pill across every tab (including Reels).
      */
-    private static boolean clearParentBlockAndAdjustContent(
+    private static ViewGroup clearParentBlockAndExpandContent(
             Activity activity,
             ViewGroup tabBar,
             int pillHeight,
             int bottomMargin,
-            boolean isReelsSelected
+            BarState state
     ) {
         int maxDividerHeight = dp(activity, 3);
-        boolean tabBarDirectInVerticalLinear = false;
+        state.tabBarDirectInVerticalLinear = false;
+        ViewGroup contentRoot = null;
         View branch = tabBar;
         ViewParent current = tabBar.getParent();
-        int wrapperBg = isReelsSelected ? Color.BLACK : Color.TRANSPARENT;
 
-        for (int depth = 0; depth < 4 && current instanceof ViewGroup; depth++) {
+        for (int depth = 0; depth < 5 && current instanceof ViewGroup; depth++) {
             ViewGroup parentGroup = (ViewGroup) current;
             Drawable bg = parentGroup.getBackground();
-            int targetBg = depth == 0 ? wrapperBg : Color.TRANSPARENT;
-            if (bg == null && targetBg != Color.TRANSPARENT) {
-                parentGroup.setBackgroundColor(targetBg);
-            } else if (bg != null && (!(bg instanceof ColorDrawable) || ((ColorDrawable) bg).getColor() != targetBg)) {
-                parentGroup.setBackgroundColor(targetBg);
+            if (bg != null && (!(bg instanceof ColorDrawable) || ((ColorDrawable) bg).getColor() != Color.TRANSPARENT)) {
+                parentGroup.setBackgroundColor(Color.TRANSPARENT);
             }
             parentGroup.setClipChildren(false);
             parentGroup.setClipToPadding(false);
@@ -311,19 +318,22 @@ public final class PixelMusicNavBarStyle {
             }
 
             if (largeSibling != null) {
+                if (contentRoot == null && largeSibling instanceof ViewGroup) {
+                    contentRoot = (ViewGroup) largeSibling;
+                }
                 if (parentGroup instanceof LinearLayout
                         && ((LinearLayout) parentGroup).getOrientation() == LinearLayout.VERTICAL) {
                     if (branch == tabBar) {
-                        tabBarDirectInVerticalLinear = true;
+                        state.tabBarDirectInVerticalLinear = true;
                     } else if (branch.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
                         ViewGroup.MarginLayoutParams blp = (ViewGroup.MarginLayoutParams) branch.getLayoutParams();
-                        int targetTop = isReelsSelected ? 0 : -(pillHeight + bottomMargin + dp(activity, 8));
-                        if (blp.topMargin != targetTop) {
-                            blp.topMargin = targetTop;
+                        int overlapTop = -(pillHeight + bottomMargin + dp(activity, 8));
+                        if (blp.topMargin != overlapTop) {
+                            blp.topMargin = overlapTop;
                             branch.setLayoutParams(blp);
                         }
                     }
-                } else if (!isReelsSelected) {
+                } else {
                     ViewGroup.LayoutParams clp = largeSibling.getLayoutParams();
                     if (clp instanceof RelativeLayout.LayoutParams) {
                         RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) clp;
@@ -345,7 +355,191 @@ public final class PixelMusicNavBarStyle {
             branch = parentGroup;
             current = parentGroup.getParent();
         }
-        return tabBarDirectInVerticalLinear;
+        return contentRoot;
+    }
+
+    /**
+     * When on the Reels tab: makes the status bar transparent for edge-to-edge video, hides the
+     * top "Reels / Friends / +" header bar, and lifts the bottom author/caption/action overlays
+     * above the floating navbar while leaving the video and Reel progress bar at the bottom.
+     */
+    private static void applyReelsFullscreenLayout(
+            Activity activity,
+            ViewGroup contentRoot,
+            boolean isReelsSelected,
+            BarState state
+    ) {
+        Window window = activity.getWindow();
+        if (window != null) {
+            View decor = window.getDecorView();
+            if (isReelsSelected) {
+                if (!state.reelsSystemBarsApplied) {
+                    state.savedStatusBarColor = window.getStatusBarColor();
+                    state.savedSystemUiVisibility = decor.getSystemUiVisibility();
+                    state.reelsSystemBarsApplied = true;
+                }
+                if (window.getStatusBarColor() != Color.TRANSPARENT) {
+                    window.setStatusBarColor(Color.TRANSPARENT);
+                }
+                int flags = decor.getSystemUiVisibility()
+                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                if (decor.getSystemUiVisibility() != flags) {
+                    decor.setSystemUiVisibility(flags);
+                }
+            } else if (state.reelsSystemBarsApplied) {
+                state.reelsSystemBarsApplied = false;
+                window.setStatusBarColor(state.savedStatusBarColor);
+                decor.setSystemUiVisibility(state.savedSystemUiVisibility);
+            }
+        }
+
+        if (!isReelsSelected) {
+            for (View header : state.hiddenReelsHeaders) {
+                if (header != null && header.getVisibility() == View.GONE) {
+                    header.setVisibility(View.VISIBLE);
+                }
+            }
+            state.hiddenReelsHeaders.clear();
+            for (View lifted : state.liftedOverlays) {
+                if (lifted != null && lifted.getTranslationY() != 0f) {
+                    lifted.setTranslationY(0f);
+                }
+            }
+            state.liftedOverlays.clear();
+            return;
+        }
+
+        if (contentRoot == null) {
+            return;
+        }
+
+        int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
+        int topThreshold = (int) (screenHeight * 0.18f);
+        int bottomThreshold = (int) (screenHeight * 0.78f);
+        int maxOverlayHeight = (int) (screenHeight * 0.62f);
+        float liftOffset = -dp(activity, 92);
+
+        List<View> headers = new ArrayList<>();
+        List<View> overlays = new ArrayList<>();
+        Rect rect = new Rect();
+        scanReelsHierarchy(contentRoot, topThreshold, bottomThreshold, maxOverlayHeight, rect, headers, overlays);
+
+        for (View header : headers) {
+            if (header.getVisibility() != View.GONE) {
+                header.setVisibility(View.GONE);
+                if (!state.hiddenReelsHeaders.contains(header)) {
+                    state.hiddenReelsHeaders.add(header);
+                }
+            }
+        }
+
+        for (View overlay : overlays) {
+            if (overlay.getTranslationY() != liftOffset) {
+                overlay.setTranslationY(liftOffset);
+                if (!state.liftedOverlays.contains(overlay)) {
+                    state.liftedOverlays.add(overlay);
+                }
+            }
+        }
+    }
+
+    private static void scanReelsHierarchy(
+            View view,
+            int topThreshold,
+            int bottomThreshold,
+            int maxOverlayHeight,
+            Rect rect,
+            List<View> headers,
+            List<View> overlays
+    ) {
+        if (view == null || view.getVisibility() != View.VISIBLE) {
+            return;
+        }
+        if (view instanceof SurfaceView || view instanceof TextureView
+                || view instanceof SeekBar || view instanceof ProgressBar) {
+            return;
+        }
+
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            if (group.getGlobalVisibleRect(rect)) {
+                if (rect.top < topThreshold && rect.bottom <= (int) (topThreshold * 1.4f)
+                        && !containsVideoOrProgress(group)
+                        && containsReelsHeaderText(group)) {
+                    headers.add(group);
+                    return;
+                }
+
+                int height = group.getHeight();
+                if (height > 0 && height <= maxOverlayHeight
+                        && rect.bottom >= bottomThreshold
+                        && !containsVideoOrProgress(group)
+                        && hasOverlayContent(group)) {
+                    overlays.add(group);
+                    return;
+                }
+            }
+
+            for (int i = 0; i < group.getChildCount(); i++) {
+                scanReelsHierarchy(group.getChildAt(i), topThreshold, bottomThreshold, maxOverlayHeight, rect, headers, overlays);
+            }
+        }
+    }
+
+    private static boolean containsVideoOrProgress(View view) {
+        if (view instanceof SurfaceView || view instanceof TextureView
+                || view instanceof SeekBar || view instanceof ProgressBar) {
+            return true;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                if (containsVideoOrProgress(group.getChildAt(i))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean containsReelsHeaderText(View view) {
+        if (view instanceof TextView) {
+            CharSequence cs = ((TextView) view).getText();
+            if (cs != null) {
+                String text = cs.toString().trim();
+                if (text.equalsIgnoreCase("Reels") || text.equalsIgnoreCase("Friends")) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup group = (ViewGroup) view;
+            for (int i = 0; i < group.getChildCount(); i++) {
+                if (containsReelsHeaderText(group.getChildAt(i))) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    private static boolean hasOverlayContent(ViewGroup group) {
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child == null || child.getVisibility() != View.VISIBLE) {
+                continue;
+            }
+            if (child instanceof TextView || child instanceof ImageView) {
+                return true;
+            }
+            if (child instanceof ViewGroup && hasOverlayContent((ViewGroup) child)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static void tintTabIcons(View view, int tintColor, int minIconSizePx) {
@@ -396,6 +590,12 @@ public final class PixelMusicNavBarStyle {
 
     private static final class BarState {
         GradientDrawable pillDrawable;
+        boolean tabBarDirectInVerticalLinear;
+        boolean reelsSystemBarsApplied;
+        int savedStatusBarColor;
+        int savedSystemUiVisibility;
+        final List<View> hiddenReelsHeaders = new ArrayList<>();
+        final List<View> liftedOverlays = new ArrayList<>();
         int lastPillColor;
         int lastOnPillColor;
         int lastChildCount = -1;
