@@ -1,3 +1,13 @@
+## [1.12.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.4...v1.12.0) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** pass View parameter to OnLongClickListener lambda in ChatDeletedOverlay ([24f9828](https://github.com/ABHIJAT-DEV/piko/commit/24f9828c5a97d357e3ed7de7e0c0f31e4e807ef0))
+
+### ✨ New Features
+
+* **instagram:** add long-press selection/clear and media rendering in deleted messages sheet ([9c563c4](https://github.com/ABHIJAT-DEV/piko/commit/9c563c4d7c97fac688dac4efd738de8a749e4baf))
+
 ## [1.11.4](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.3...v1.11.4) (2026-11-14)
 
 ### 🐛 Bug Fixes
