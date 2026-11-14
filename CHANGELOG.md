@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.6.0...v1.6.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** clear top status bar inset padding and light icons on Reels ([542bdf8](https://github.com/ABHIJAT-DEV/piko/commit/542bdf85238a6f8d50473348c7f8b5cf9e150b6c))
+
 ## [1.6.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.5.1...v1.6.0) (2026-11-14)
 
 ### ✨ New Features
