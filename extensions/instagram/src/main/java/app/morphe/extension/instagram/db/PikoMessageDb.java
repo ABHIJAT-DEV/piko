@@ -18,7 +18,7 @@ import java.util.List;
 public class PikoMessageDb extends SQLiteOpenHelper {
 
     private static final String DB_NAME = "piko_dm_vault.db";
-    static final int DB_VERSION = 4;
+    static final int DB_VERSION = 5;
     private static final String TABLE = "saved_messages";
     // sender_id → username directory. MQTT-delivered items carry only a numeric sender_id;
     // the REST path occasionally carries a full UserInfo. Every time we resolve a username we
@@ -56,6 +56,9 @@ public class PikoMessageDb extends SQLiteOpenHelper {
                     + "WHERE message_id GLOB '[0-9]*' AND message_id NOT GLOB '*[^0-9]*'");
             java.util.Collections.addAll(statements, identityIndexStatements());
         }
+        if (oldVersion < 5) {
+            statements.add("ALTER TABLE " + TABLE + " ADD COLUMN deleted_at INTEGER DEFAULT 0");
+        }
         return statements.toArray(new String[0]);
     }
 
@@ -88,7 +91,8 @@ public class PikoMessageDb extends SQLiteOpenHelper {
             "content TEXT," +
             "message_type TEXT," +
             "timestamp INTEGER NOT NULL," +
-            "is_deleted INTEGER DEFAULT 0" +
+            "is_deleted INTEGER DEFAULT 0," +
+            "deleted_at INTEGER DEFAULT 0" +
             ")"
         );
         db.execSQL("CREATE INDEX idx_thread_id ON " + TABLE + "(thread_id)");
@@ -397,6 +401,7 @@ public class PikoMessageDb extends SQLiteOpenHelper {
         SQLiteDatabase db = getWritableDatabase();
         ContentValues cv = new ContentValues();
         cv.put("is_deleted", 1);
+        cv.put("deleted_at", System.currentTimeMillis());
         return db.update(TABLE, cv, "message_id = ? AND is_deleted = 0",
                 new String[]{messageId}) == 1;
     }
@@ -521,14 +526,19 @@ public class PikoMessageDb extends SQLiteOpenHelper {
 
     private String[] rowToStringArray(Cursor c, java.util.Map<String, String> directory) {
         String senderId = c.getString(c.getColumnIndexOrThrow("sender_id"));
+        long ts = c.getLong(c.getColumnIndexOrThrow("timestamp"));
+        int deletedAtIdx = c.getColumnIndex("deleted_at");
+        long deletedAt = (deletedAtIdx >= 0 && !c.isNull(deletedAtIdx)) ? c.getLong(deletedAtIdx) : 0L;
+        if (deletedAt <= 0L) deletedAt = ts;
         return new String[]{
             c.getString(c.getColumnIndexOrThrow("message_id")),
             c.getString(c.getColumnIndexOrThrow("thread_id")),
             resolveUsername(c.getString(c.getColumnIndexOrThrow("sender_username")), senderId, directory),
             c.getString(c.getColumnIndexOrThrow("content")),
             c.getString(c.getColumnIndexOrThrow("message_type")),
-            String.valueOf(c.getLong(c.getColumnIndexOrThrow("timestamp"))),
-            senderId
+            String.valueOf(ts),
+            senderId,
+            String.valueOf(deletedAt)
         };
     }
 
