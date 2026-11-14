@@ -6,8 +6,6 @@
 
 package app.morphe.extension.instagram.patches.navigation;
 
-import android.animation.ArgbEvaluator;
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Color;
@@ -19,13 +17,11 @@ import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
 import android.util.TypedValue;
-import android.view.HapticFeedbackConstants;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
-import android.view.animation.Interpolator;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
@@ -37,15 +33,13 @@ import app.morphe.extension.crimera.sharedPreference.SharedPref;
 import app.morphe.extension.instagram.constants.UI;
 import app.morphe.extension.instagram.settings.ActivityHook;
 import app.morphe.extension.instagram.settings.Settings;
-import app.morphe.extension.instagram.settings.preference.widgets.InstagramPreferenceStyle;
 import app.morphe.extension.instagram.theme.MaterialYouTheme;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
 
 /**
- * Styles Instagram's bottom navigation bar as a PixelMusic-inspired floating pill toolbar
- * with blobby spring selection animations.
+ * Styles Instagram's bottom navigation bar as a PixelMusic-inspired floating pill toolbar.
  */
 @SuppressWarnings("unused")
 public final class PixelMusicNavBarStyle {
@@ -56,16 +50,8 @@ public final class PixelMusicNavBarStyle {
             "search_tab",
             "profile_tab"
     };
-    private static final float SELECTED_TAB_WEIGHT = 1.45f;
-    private static final float UNSELECTED_TAB_WEIGHT = 1.0f;
-    private static final long BLOB_ANIM_DURATION_MS = 420L;
-    private static final ArgbEvaluator ARGB_EVALUATOR = new ArgbEvaluator();
-    private static final Interpolator SPRING_INTERPOLATOR = t -> {
-        if (t <= 0f) return 0f;
-        if (t >= 1f) return 1f;
-        return (float) (1.0 - Math.exp(-6.5 * t) * Math.cos(10.5 * t));
-    };
-
+    private static final int BW_DARK = 0xFF141416;
+    private static final int BW_LIGHT = 0xFFF5F5F7;
     private static final Map<ViewGroup, BarState> ATTACHED_BARS = new WeakHashMap<>();
 
     private PixelMusicNavBarStyle() {
@@ -141,17 +127,33 @@ public final class PixelMusicNavBarStyle {
     }
 
     private static void applyStyle(Activity activity, ViewGroup tabBar, BarState state) {
-        int primaryColor = resolvePrimaryColor(activity);
-        int bgColor = UI.getBackgroundColor();
+        boolean materialYou = MaterialYouTheme.isMaterialYouEnabled();
+        boolean dark = UI.isDarkMode();
+        int pillColor = resolvePillColor(activity, materialYou, dark);
+        int onPillColor = resolveOnPillColor(materialYou, dark);
         int profileTabId = ResourceUtils.getIdentifier(ResourceType.ID, "profile_tab");
+        int clipsTabId = ResourceUtils.getIdentifier(ResourceType.ID, "clips_tab");
         int pillHeight = dp(activity, 64);
         int hMargin = dp(activity, 16);
         int bMargin = dp(activity, 12);
 
+        int childCount = tabBar.getChildCount();
+        long selectionMask = 0L;
+        boolean isReelsSelected = false;
+        for (int i = 0; i < childCount && i < 63; i++) {
+            View child = tabBar.getChildAt(i);
+            if (child != null && (child.isSelected() || child.isActivated())) {
+                selectionMask |= (1L << i);
+                if (clipsTabId != 0 && child.getId() == clipsTabId) {
+                    isReelsSelected = true;
+                }
+            }
+        }
+
         boolean backgroundOverwritten = state.pillDrawable == null
                 || tabBar.getBackground() != state.pillDrawable;
-        boolean themeChanged = state.lastPrimaryColor != primaryColor
-                || state.lastBgColor != bgColor;
+        boolean themeChanged = state.lastPillColor != pillColor
+                || state.lastOnPillColor != onPillColor;
 
         if (backgroundOverwritten || themeChanged) {
             if (state.pillDrawable == null) {
@@ -159,7 +161,7 @@ public final class PixelMusicNavBarStyle {
                 state.pillDrawable.setShape(GradientDrawable.RECTANGLE);
             }
             state.pillDrawable.setCornerRadius(dp(activity, 32));
-            state.pillDrawable.setColor(primaryColor);
+            state.pillDrawable.setColor(pillColor);
 
             tabBar.setBackground(state.pillDrawable);
             tabBar.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
@@ -174,7 +176,13 @@ public final class PixelMusicNavBarStyle {
             }
         }
 
-        boolean tabBarIsDirectContentSibling = clearParentBlockAndExpandContent(activity, tabBar, pillHeight, bMargin);
+        boolean tabBarIsDirectContentSibling = clearParentBlockAndAdjustContent(
+                activity,
+                tabBar,
+                pillHeight,
+                bMargin,
+                isReelsSelected
+        );
 
         ViewGroup.LayoutParams lp = tabBar.getLayoutParams();
         if (lp != null) {
@@ -185,7 +193,9 @@ public final class PixelMusicNavBarStyle {
             }
             if (lp instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
-                int targetTopMargin = tabBarIsDirectContentSibling ? -(pillHeight + bMargin) : dp(activity, 4);
+                int targetTopMargin = (!isReelsSelected && tabBarIsDirectContentSibling)
+                        ? -(pillHeight + bMargin)
+                        : dp(activity, 4);
                 if (mlp.leftMargin != hMargin || mlp.rightMargin != hMargin
                         || mlp.bottomMargin != bMargin || mlp.topMargin != targetTopMargin) {
                     mlp.leftMargin = hMargin;
@@ -200,17 +210,6 @@ public final class PixelMusicNavBarStyle {
             }
         }
 
-        int childCount = tabBar.getChildCount();
-        long selectionMask = 0L;
-        for (int i = 0; i < childCount && i < 63; i++) {
-            View child = tabBar.getChildAt(i);
-            if (child != null && (child.isSelected() || child.isActivated())) {
-                selectionMask |= (1L << i);
-            }
-        }
-
-        boolean selectionChanged = state.lastSelectionMask != -1L
-                && state.lastSelectionMask != selectionMask;
         boolean needsTabRestyle = backgroundOverwritten
                 || themeChanged
                 || state.lastSelectionMask != selectionMask
@@ -233,32 +232,13 @@ public final class PixelMusicNavBarStyle {
             return;
         }
 
-        long previousMask = state.lastSelectionMask;
-        state.lastPrimaryColor = primaryColor;
-        state.lastBgColor = bgColor;
+        state.lastPillColor = pillColor;
+        state.lastOnPillColor = onPillColor;
         state.lastSelectionMask = selectionMask;
         state.lastChildCount = childCount;
 
-        if (selectionChanged) {
-            tabBar.performHapticFeedback(HapticFeedbackConstants.CLOCK_TICK);
-            animateBlobbySelection(activity, tabBar, state, previousMask, selectionMask, primaryColor, bgColor, profileTabId);
-        } else {
-            applyStaticSelection(activity, tabBar, selectionMask, primaryColor, bgColor, profileTabId);
-        }
-    }
-
-    private static void applyStaticSelection(
-            Activity activity,
-            ViewGroup tabBar,
-            long selectionMask,
-            int primaryColor,
-            int bgColor,
-            int profileTabId
-    ) {
         int insetH = dp(activity, 4);
         int insetV = dp(activity, 2);
-        int childCount = tabBar.getChildCount();
-        boolean isLinear = tabBar instanceof LinearLayout;
 
         for (int i = 0; i < childCount; i++) {
             View child = tabBar.getChildAt(i);
@@ -270,151 +250,46 @@ public final class PixelMusicNavBarStyle {
                 GradientDrawable selectedPill = new GradientDrawable();
                 selectedPill.setShape(GradientDrawable.RECTANGLE);
                 selectedPill.setCornerRadius(dp(activity, 24));
-                selectedPill.setColor(bgColor);
+                selectedPill.setColor(onPillColor);
                 child.setBackground(new InsetDrawable(selectedPill, insetH, insetV, insetH, insetV));
             } else {
                 child.setBackground(null);
             }
 
-            if (isLinear && child.getLayoutParams() instanceof LinearLayout.LayoutParams) {
-                LinearLayout.LayoutParams clp = (LinearLayout.LayoutParams) child.getLayoutParams();
-                float targetWeight = selected ? SELECTED_TAB_WEIGHT : UNSELECTED_TAB_WEIGHT;
-                if (clp.weight != targetWeight) {
-                    clp.weight = targetWeight;
-                    child.setLayoutParams(clp);
-                }
-            }
-
-            child.setScaleX(1f);
-            child.setScaleY(1f);
-
             if (child.getId() != profileTabId) {
-                int iconTint = selected ? primaryColor : bgColor;
+                int iconTint = selected ? pillColor : onPillColor;
                 tintTabIcons(child, iconTint, dp(activity, 14));
             }
         }
     }
 
-    private static void animateBlobbySelection(
-            Activity activity,
-            ViewGroup tabBar,
-            BarState state,
-            long previousMask,
-            long selectionMask,
-            int primaryColor,
-            int bgColor,
-            int profileTabId
-    ) {
-        if (state.blobAnimator != null) {
-            state.blobAnimator.cancel();
-        }
-
-        int insetH = dp(activity, 4);
-        int insetV = dp(activity, 2);
-        int childCount = tabBar.getChildCount();
-        boolean isLinear = tabBar instanceof LinearLayout;
-        int minIconSizePx = dp(activity, 14);
-
-        final float[] startWeights = new float[childCount];
-        final float[] endWeights = new float[childCount];
-
-        for (int i = 0; i < childCount; i++) {
-            View child = tabBar.getChildAt(i);
-            if (child == null || child.getVisibility() != View.VISIBLE) {
-                continue;
-            }
-            boolean selected = (selectionMask & (1L << i)) != 0L;
-            if (selected) {
-                GradientDrawable selectedPill = new GradientDrawable();
-                selectedPill.setShape(GradientDrawable.RECTANGLE);
-                selectedPill.setCornerRadius(dp(activity, 24));
-                selectedPill.setColor(bgColor);
-                child.setBackground(new InsetDrawable(selectedPill, insetH, insetV, insetH, insetV));
-            } else {
-                child.setBackground(null);
-            }
-
-            if (isLinear && child.getLayoutParams() instanceof LinearLayout.LayoutParams) {
-                LinearLayout.LayoutParams clp = (LinearLayout.LayoutParams) child.getLayoutParams();
-                startWeights[i] = clp.weight > 0f ? clp.weight : UNSELECTED_TAB_WEIGHT;
-                endWeights[i] = selected ? SELECTED_TAB_WEIGHT : UNSELECTED_TAB_WEIGHT;
-            }
-        }
-
-        ValueAnimator animator = ValueAnimator.ofFloat(0f, 1f);
-        animator.setDuration(BLOB_ANIM_DURATION_MS);
-        animator.setInterpolator(SPRING_INTERPOLATOR);
-        animator.addUpdateListener(anim -> {
-            float fraction = (float) anim.getAnimatedValue();
-            float clampedFraction = Math.max(0f, Math.min(1f, fraction));
-            boolean layoutChanged = false;
-
-            for (int i = 0; i < childCount && i < tabBar.getChildCount(); i++) {
-                View child = tabBar.getChildAt(i);
-                if (child == null || child.getVisibility() != View.VISIBLE) {
-                    continue;
-                }
-                boolean wasSelected = (previousMask & (1L << i)) != 0L;
-                boolean nowSelected = (selectionMask & (1L << i)) != 0L;
-
-                if (isLinear && child.getLayoutParams() instanceof LinearLayout.LayoutParams) {
-                    LinearLayout.LayoutParams clp = (LinearLayout.LayoutParams) child.getLayoutParams();
-                    float w = startWeights[i] + (endWeights[i] - startWeights[i]) * fraction;
-                    if (w < 0.7f) w = 0.7f;
-                    clp.weight = w;
-                    layoutChanged = true;
-                }
-
-                if (nowSelected && !wasSelected) {
-                    float scale = 0.88f + 0.12f * fraction;
-                    child.setScaleX(scale);
-                    child.setScaleY(scale);
-                } else {
-                    child.setScaleX(1f);
-                    child.setScaleY(1f);
-                }
-
-                if (child.getId() != profileTabId) {
-                    int startColor = wasSelected ? primaryColor : bgColor;
-                    int endColor = nowSelected ? primaryColor : bgColor;
-                    if (startColor != endColor) {
-                        int blended = (int) ARGB_EVALUATOR.evaluate(clampedFraction, startColor, endColor);
-                        tintTabIcons(child, blended, minIconSizePx);
-                    } else {
-                        tintTabIcons(child, endColor, minIconSizePx);
-                    }
-                }
-            }
-            if (layoutChanged) {
-                tabBar.requestLayout();
-            }
-        });
-        state.blobAnimator = animator;
-        animator.start();
-    }
-
     /**
      * Clears solid backgrounds and dividers on ancestor wrappers and expands the main content
-     * container behind the floating pill so no sharp-edged block appears behind it.
-     *
-     * @return true if tabBar itself is a direct child of a vertical LinearLayout alongside content.
+     * container behind the floating pill on non-Reels tabs. On Reels, keeps the content above
+     * the pill so username, caption, and action buttons stay visible while the progress bar
+     * remains at the bottom of the Reel.
      */
-    private static boolean clearParentBlockAndExpandContent(
+    private static boolean clearParentBlockAndAdjustContent(
             Activity activity,
             ViewGroup tabBar,
             int pillHeight,
-            int bottomMargin
+            int bottomMargin,
+            boolean isReelsSelected
     ) {
         int maxDividerHeight = dp(activity, 3);
         boolean tabBarDirectInVerticalLinear = false;
         View branch = tabBar;
         ViewParent current = tabBar.getParent();
+        int wrapperBg = isReelsSelected ? Color.BLACK : Color.TRANSPARENT;
 
         for (int depth = 0; depth < 4 && current instanceof ViewGroup; depth++) {
             ViewGroup parentGroup = (ViewGroup) current;
             Drawable bg = parentGroup.getBackground();
-            if (bg != null && (!(bg instanceof ColorDrawable) || ((ColorDrawable) bg).getColor() != Color.TRANSPARENT)) {
-                parentGroup.setBackgroundColor(Color.TRANSPARENT);
+            int targetBg = depth == 0 ? wrapperBg : Color.TRANSPARENT;
+            if (bg == null && targetBg != Color.TRANSPARENT) {
+                parentGroup.setBackgroundColor(targetBg);
+            } else if (bg != null && (!(bg instanceof ColorDrawable) || ((ColorDrawable) bg).getColor() != targetBg)) {
+                parentGroup.setBackgroundColor(targetBg);
             }
             parentGroup.setClipChildren(false);
             parentGroup.setClipToPadding(false);
@@ -442,13 +317,13 @@ public final class PixelMusicNavBarStyle {
                         tabBarDirectInVerticalLinear = true;
                     } else if (branch.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
                         ViewGroup.MarginLayoutParams blp = (ViewGroup.MarginLayoutParams) branch.getLayoutParams();
-                        int overlapTop = -(pillHeight + bottomMargin + dp(activity, 8));
-                        if (blp.topMargin != overlapTop) {
-                            blp.topMargin = overlapTop;
+                        int targetTop = isReelsSelected ? 0 : -(pillHeight + bottomMargin + dp(activity, 8));
+                        if (blp.topMargin != targetTop) {
+                            blp.topMargin = targetTop;
                             branch.setLayoutParams(blp);
                         }
                     }
-                } else {
+                } else if (!isReelsSelected) {
                     ViewGroup.LayoutParams clp = largeSibling.getLayoutParams();
                     if (clp instanceof RelativeLayout.LayoutParams) {
                         RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) clp;
@@ -491,17 +366,24 @@ public final class PixelMusicNavBarStyle {
         }
     }
 
-    private static int resolvePrimaryColor(Context context) {
-        if (Build.VERSION.SDK_INT >= 31 && MaterialYouTheme.isMaterialYouEnabled()) {
+    private static int resolvePillColor(Context context, boolean materialYou, boolean dark) {
+        if (materialYou && Build.VERSION.SDK_INT >= 31) {
             try {
-                int resId = UI.isDarkMode()
+                int resId = dark
                         ? android.R.color.system_accent1_200
                         : android.R.color.system_accent1_600;
                 return context.getColor(resId);
             } catch (Throwable ignored) {
             }
         }
-        return InstagramPreferenceStyle.selectionColor();
+        return dark ? BW_LIGHT : BW_DARK;
+    }
+
+    private static int resolveOnPillColor(boolean materialYou, boolean dark) {
+        if (materialYou) {
+            return UI.getBackgroundColor();
+        }
+        return dark ? BW_DARK : Color.WHITE;
     }
 
     private static int dp(Context context, float value) {
@@ -514,9 +396,8 @@ public final class PixelMusicNavBarStyle {
 
     private static final class BarState {
         GradientDrawable pillDrawable;
-        ValueAnimator blobAnimator;
-        int lastPrimaryColor;
-        int lastBgColor;
+        int lastPillColor;
+        int lastOnPillColor;
         int lastChildCount = -1;
         long lastSelectionMask = -1L;
     }
