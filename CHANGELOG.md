@@ -1,3 +1,9 @@
+## [1.8.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.7.0...v1.8.0) (2026-11-14)
+
+### ✨ New Features
+
+* **instagram:** round feed post media corners with PixelMusic card radius ([6336bd9](https://github.com/ABHIJAT-DEV/piko/commit/6336bd9c306260b2ce133a598b07293d4fda3c8f))
+
 ## [1.7.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.6.1...v1.7.0) (2026-11-14)
 
 ### 🐛 Bug Fixes
