@@ -1,3 +1,14 @@
+## [1.7.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.6.1...v1.7.0) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **dm:** import addInstructionsWithLabels in SaveDeletedMessagesPatch ([5ed72e8](https://github.com/ABHIJAT-DEV/piko/commit/5ed72e86973bbeb103b1af11fc445ace2ca5b160))
+* **dm:** keep piko_dm_vault.db intact when switching accounts ([d57bfa4](https://github.com/ABHIJAT-DEV/piko/commit/d57bfa44672fee1ff14c861d4b2fe01be561c23b))
+
+### ✨ New Features
+
+* **dm:** keep unsent messages in chat and clear vault on account change ([82fc86a](https://github.com/ABHIJAT-DEV/piko/commit/82fc86a0dd3d342d3fef810177bd9113f1e230a7))
+
 ## [1.6.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.6.0...v1.6.1) (2026-11-14)
 
 ### 🐛 Bug Fixes
