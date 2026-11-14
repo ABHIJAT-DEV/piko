@@ -1,3 +1,9 @@
+## [1.11.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.2...v1.11.3) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** show saved deleted messages after app update/restart ([1fba549](https://github.com/ABHIJAT-DEV/piko/commit/1fba5490be3a789ff01b34220dceb965eff3a0cb))
+
 ## [1.11.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.1...v1.11.2) (2026-11-14)
 
 ### 🐛 Bug Fixes

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-14T17:25:13",
-  "description": "## [1.11.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.1...v1.11.2) (2026-11-14)\n\n### 🐛 Bug Fixes\n\n* **instagram:** restore navbar visibility on Home and match status bar to rounded header ([abd3457](https://github.com/ABHIJAT-DEV/piko/commit/abd345712383a3a88796da5869ee59255890bc21))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.2/patches-1.11.2.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.2/patches-1.11.2.mpp.asc",
-  "version": "1.11.2"
+  "created_at": "2026-11-14T17:31:57",
+  "description": "## [1.11.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.2...v1.11.3) (2026-11-14)\n\n### 🐛 Bug Fixes\n\n* **instagram:** show saved deleted messages after app update/restart ([1fba549](https://github.com/ABHIJAT-DEV/piko/commit/1fba5490be3a789ff01b34220dceb965eff3a0cb))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.3/patches-1.11.3.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.3/patches-1.11.3.mpp.asc",
+  "version": "1.11.3"
 }
