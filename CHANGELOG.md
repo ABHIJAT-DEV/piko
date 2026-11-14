@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.3.0...v1.4.0) (2026-11-14)
+
+### ✨ New Features
+
+* **instagram:** apply PixelMusic floating pill navigation bar style ([e05efd8](https://github.com/ABHIJAT-DEV/piko/commit/e05efd8884af9c7a36085724f517f643d4c25c5d))
+
 ## [1.3.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.2.0...v1.3.0) (2026-11-14)
 
 ### ✨ New Features
