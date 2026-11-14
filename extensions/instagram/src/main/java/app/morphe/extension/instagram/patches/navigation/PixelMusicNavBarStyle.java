@@ -526,7 +526,8 @@ public final class PixelMusicNavBarStyle {
                             || lower.contains("bottom_sheet")
                             || lower.contains("sheet_container")
                             || lower.contains("action_sheet")
-                            || lower.contains("igds_bottom_sheet")) {
+                            || lower.contains("igds_bottom_sheet")
+                            || lower.contains("modal_sheet")) {
                         return true;
                     }
                 }
