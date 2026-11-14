@@ -610,21 +610,26 @@ public final class ChatDeletedOverlay {
     }
 
     private static void loadMessages(Activity activity, PikoMessageDb db, SheetState state) {
+        List<String[]> allDeleted = db.getDeletedMessages();
+        List<String[]> matched = filterByHeaderHint(activity, allDeleted);
+        if (!matched.isEmpty()) {
+            state.messages = matched;
+            state.showingAllFallback = false;
+            return;
+        }
+
         String threadId = SavedMessagesHook.getActiveThreadId();
         if (threadId != null && !threadId.isEmpty()) {
-            state.messages = db.getDeletedMessagesForThread(threadId);
-            state.showingAllFallback = false;
-        } else {
-            List<String[]> allDeleted = db.getDeletedMessages();
-            List<String[]> matched = filterByHeaderHint(activity, allDeleted);
-            if (!matched.isEmpty()) {
-                state.messages = matched;
+            List<String[]> threadMessages = db.getDeletedMessagesForThread(threadId);
+            if (!threadMessages.isEmpty()) {
+                state.messages = threadMessages;
                 state.showingAllFallback = false;
-            } else {
-                state.messages = allDeleted;
-                state.showingAllFallback = !allDeleted.isEmpty();
+                return;
             }
         }
+
+        state.messages = allDeleted;
+        state.showingAllFallback = !allDeleted.isEmpty();
     }
 
     private static void startSelection(SheetState state, String msgId, Runnable render) {

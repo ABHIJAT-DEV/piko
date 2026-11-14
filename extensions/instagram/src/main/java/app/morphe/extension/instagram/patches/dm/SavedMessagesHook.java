@@ -224,7 +224,6 @@ public class SavedMessagesHook {
             String threadId = directItem.getThreadId();
             if (isBlank(threadId) && !isBlank(threadIdHint)) threadId = threadIdHint;
             if (threadId == null) threadId = "";
-            if (!threadId.isEmpty()) sActiveThreadId = threadId;
 
             String senderId = directItem.getUserId();
             boolean sentByViewer = directItem.isSentByViewer();
