@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.2.0...v1.3.0) (2026-11-14)
+
+### ✨ New Features
+
+* **instagram:** apply PixelMusic settings style and add home button long-tap shortcut ([0d8ccd2](https://github.com/ABHIJAT-DEV/piko/commit/0d8ccd2dbc19fce3154abd75362654c93cc1b7ee))
+
 ## [1.2.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.1.0...v1.2.0) (2026-11-14)
 
 ### ✨ New Features
