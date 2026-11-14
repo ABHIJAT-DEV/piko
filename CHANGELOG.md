@@ -1,3 +1,14 @@
+## [1.5.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.4.1...v1.5.0) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** respect Material You toggle in PixelMusic navbar color ([eb9effa](https://github.com/ABHIJAT-DEV/piko/commit/eb9effab7d7c5cd313494c8b38c30874c856593f))
+
+### ✨ New Features
+
+* **instagram:** remove background block behind navbar and add PixelMusic blobby spring animation ([2f3d27e](https://github.com/ABHIJAT-DEV/piko/commit/2f3d27e74bb3fd3b33a44e8383d26fb7cea6f6ba))
+* **settings:** add one-line descriptions to all main settings category cards ([20d9b0a](https://github.com/ABHIJAT-DEV/piko/commit/20d9b0a93e4953329c35973f029329dab3ebaa7f))
+
 ## [1.4.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.4.0...v1.4.1) (2026-11-14)
 
 ### 🐛 Bug Fixes
