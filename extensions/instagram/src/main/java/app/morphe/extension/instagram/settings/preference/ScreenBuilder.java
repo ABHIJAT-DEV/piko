@@ -1254,7 +1254,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_ads"),
-                            "",
+                            str("piko_category_ads_desc"),
                             Constants.PIKO_FRAGMENT_ADS
                     )
             );
@@ -1264,7 +1264,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_filter_content"),
-                            "",
+                            str("piko_category_filter_content_desc"),
                             Constants.PIKO_FRAGMENT_FILTER_CONTENT
                     )
             );
@@ -1274,7 +1274,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_ghost"),
-                            "",
+                            str("piko_category_ghost_desc"),
                             Constants.PIKO_FRAGMENT_GHOST
                     )
             );
@@ -1284,7 +1284,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_dm"),
-                            "",
+                            str("piko_category_dm_desc"),
                             Constants.PIKO_FRAGMENT_DM
                     )
             );
@@ -1294,7 +1294,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_story"),
-                            "",
+                            str("piko_category_story_desc"),
                             Constants.PIKO_FRAGMENT_STORY
                     )
             );
@@ -1304,7 +1304,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_links"),
-                            "",
+                            str("piko_category_links_desc"),
                             Constants.PIKO_FRAGMENT_LINKS
                     )
             );
@@ -1314,7 +1314,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_distraction_free"),
-                            "",
+                            str("piko_category_distraction_free_desc"),
                             Constants.PIKO_FRAGMENT_DISTRACTION_FREE
                     )
             );
@@ -1324,7 +1324,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_misc"),
-                            "",
+                            str("piko_category_misc_desc"),
                             Constants.PIKO_FRAGMENT_MISC
                     )
             );
@@ -1334,7 +1334,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_downloads"),
-                            "",
+                            str("piko_category_downloads_desc"),
                             Constants.PIKO_FRAGMENT_DOWNLOAD_MEDIA
                     )
             );
@@ -1344,7 +1344,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_instants_title"),
-                            "",
+                            str("piko_instants_desc"),
                             Constants.PIKO_FRAGMENT_INSTANTS
                     )
             );
@@ -1353,7 +1353,7 @@ public class ScreenBuilder {
         addPreference(
                 helper.categoryPreference(
                         str("piko_category_action_bar"),
-                        "",
+                        str("piko_category_action_bar_desc"),
                         Constants.PIKO_FRAGMENT_ACTION_BAR
                 )
         );
@@ -1362,7 +1362,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_navigation_tabs"),
-                            "",
+                            str("piko_category_navigation_tabs_desc"),
                             Constants.PIKO_FRAGMENT_NAV_BTNS
                     )
             );
@@ -1372,7 +1372,7 @@ public class ScreenBuilder {
             addPreference(
                     helper.categoryPreference(
                             str("piko_category_dev_options"),
-                            "",
+                            str("piko_category_dev_options_desc"),
                             Constants.PIKO_FRAGMENT_DEV_OPTIONS
                     )
             );
@@ -1381,7 +1381,7 @@ public class ScreenBuilder {
         addPreference(
                 helper.categoryPreference(
                         str("piko_category_about"),
-                        "",
+                        str("piko_category_about_desc"),
                         Constants.PIKO_FRAGMENT_ABOUT
                 )
         );

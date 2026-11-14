@@ -2,6 +2,20 @@
 <resources>
     <!-- Ads Section -->
     <string name="piko_category_ads">Ads</string>
+    <string name="piko_category_ads_desc">Block sponsored posts and suggested content</string>
+    <string name="piko_category_filter_content_desc">Filter stories, users, and feed items</string>
+    <string name="piko_category_ghost_desc">Anonymous stories, live, typing, and DMs</string>
+    <string name="piko_category_dm_desc">Inbox lock, hidden chats, and message tools</string>
+    <string name="piko_category_story_desc">Story ring, flipping, looping, and mentions</string>
+    <string name="piko_category_links_desc">External browser, link sanitizer, and domain</string>
+    <string name="piko_category_distraction_free_desc">Focus lock and hide feed distractions</string>
+    <string name="piko_category_misc_desc">Theme, fonts, icons, and extra tweaks</string>
+    <string name="piko_category_downloads_desc">Media downloader, paths, and naming</string>
+    <string name="piko_instants_desc">Save and view captured instant media</string>
+    <string name="piko_category_action_bar_desc">Customize top bar buttons across screens</string>
+    <string name="piko_category_navigation_tabs_desc">Reorder tabs, startup tab, and bar style</string>
+    <string name="piko_category_dev_options_desc">MetaConfig flags, overrides, and experiments</string>
+    <string name="piko_category_about_desc">App info, backup, restore, and patch flags</string>
     <string name="piko_disable_ads">Disable ads</string>
     <string name="piko_hide_suggested_content">Hide suggested content</string>
     <string name="piko_hide_suggested_content_desc">Hides suggested stories, reels, threads (Suggested posts will still be shown).</string>

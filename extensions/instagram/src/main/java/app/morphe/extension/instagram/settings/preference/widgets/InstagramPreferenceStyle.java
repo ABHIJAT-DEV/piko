@@ -449,7 +449,12 @@ public final class InstagramPreferenceStyle {
             summary.setTextColor(summaryColor);
             summary.setEnabled(enabled);
             if (view instanceof PreferenceRow) {
-                ((PreferenceRow) view).setHasSummary(hasSummary);
+                PreferenceRow row = (PreferenceRow) view;
+                row.setHasSummary(hasSummary);
+                if (row.hasCategoryIcon()) {
+                    summary.setMaxLines(1);
+                    summary.setEllipsize(TextUtils.TruncateAt.END);
+                }
             }
         }
 
@@ -767,6 +772,10 @@ public final class InstagramPreferenceStyle {
 
         void setIcon(String iconResName) {
             setIcon(iconResName, null);
+        }
+
+        boolean hasCategoryIcon() {
+            return iconContainer != null && iconContainer.getVisibility() == View.VISIBLE;
         }
 
         void setIcon(String iconResName, String preferenceKey) {
