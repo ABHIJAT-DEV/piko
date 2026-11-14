@@ -1,3 +1,9 @@
+## [1.6.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.5.1...v1.6.0) (2026-11-14)
+
+### ✨ New Features
+
+* **instagram:** edge-to-edge Reels with transparent status bar, hidden top bar, and lifted overlay ([27bfe8b](https://github.com/ABHIJAT-DEV/piko/commit/27bfe8bf0150664c427330583515371b6b02c58b))
+
 ## [1.5.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.5.0...v1.5.1) (2026-11-14)
 
 ### 🐛 Bug Fixes
