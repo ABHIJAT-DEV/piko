@@ -1,3 +1,9 @@
+## [1.12.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.12.1...v1.12.2) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** improve Home feed audio button detection and tap dispatch ([0b0d715](https://github.com/ABHIJAT-DEV/piko/commit/0b0d71509b80205ae64d176c23683411cd35c7d0))
+
 ## [1.12.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.12.0...v1.12.1) (2026-11-14)
 
 ### 🐛 Bug Fixes
