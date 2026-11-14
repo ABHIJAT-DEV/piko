@@ -1,3 +1,10 @@
+## [1.12.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.12.0...v1.12.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** always show saved deleted messages when active thread lookup is empty ([9555061](https://github.com/ABHIJAT-DEV/piko/commit/9555061039cfadc550712f2ce36275710892033c))
+* **instagram:** revert rounded top header styling across app and settings ([748728f](https://github.com/ABHIJAT-DEV/piko/commit/748728f61ec758a9afa6e2377ee3e7e64eff44c2))
+
 ## [1.12.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.4...v1.12.0) (2026-11-14)
 
 ### 🐛 Bug Fixes
