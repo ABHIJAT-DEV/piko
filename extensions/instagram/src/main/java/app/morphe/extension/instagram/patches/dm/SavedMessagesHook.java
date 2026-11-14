@@ -92,13 +92,23 @@ public class SavedMessagesHook {
     }
 
     private static void rememberMyUserId(String id) {
-        if (id == null || id.isEmpty() || id.equals(sMyUserId)) return;
+        if (id == null || id.isEmpty()) return;
+        String previous = myUserId();
+        if (id.equals(previous)) return;
         sMyUserId = id;
         try {
             Context context = PikoUtils.getContext();
             if (context != null) {
                 context.getSharedPreferences("piko_dm", Context.MODE_PRIVATE)
                         .edit().putString("my_user_id", id).apply();
+                if (previous != null && !previous.isEmpty()) {
+                    getWorker().post(() -> {
+                        try {
+                            PikoMessageDb.getInstance(context).clearAll();
+                        } catch (Throwable ignored) {
+                        }
+                    });
+                }
             }
         } catch (Exception ignored) {
         }
@@ -148,6 +158,7 @@ public class SavedMessagesHook {
         if (item == null || !enabled) return;
         boolean acceptedClass = item.getClass().getName().startsWith("X.");
         if (!acceptedClass) return;
+        antiRevokeIfHidden(item);
         String sessionUserId = null;
         try {
             sessionUserId = userSession != null ? userSession.getUserId() : null;
@@ -156,6 +167,16 @@ public class SavedMessagesHook {
         final String viewerId = sessionUserId;
         getWorker().post(() -> processReceivedItem(
                 item, resolveThreadIdHint(delta), viewerId, userSession));
+    }
+
+    private static void antiRevokeIfHidden(Object item) {
+        try {
+            DirectItem directItem = new DirectItem(item);
+            if (!directItem.isSentByViewer() && directItem.isHideInThread()) {
+                directItem.setHideInThread(false);
+            }
+        } catch (Throwable ignored) {
+        }
     }
 
     static String resolveThreadIdHint(Object delta) {
@@ -354,22 +375,25 @@ public class SavedMessagesHook {
         return String.format(str("piko_media_deleted"), label);
     }
 
-    public static void onMessageHiddenFromDb(String serverId, String clientContext) {
-        if (!Pref.saveDeletedMessages()) return;
-        if (isBlank(serverId) && isBlank(clientContext)) return;
-        getWorker().post(() -> processMessageHiddenFromDb(serverId, clientContext));
-    }
-
-    private static void processMessageHiddenFromDb(String serverId, String clientContext) {
+    public static boolean onMessageHiddenFromDb(String serverId, String clientContext) {
+        if (!Pref.saveDeletedMessages()) return false;
+        if (isBlank(serverId) && isBlank(clientContext)) return false;
         try {
-            if (!Pref.saveDeletedMessages()) return;
             PikoMessageDb db = PikoMessageDb.getInstance(PikoUtils.getContext());
             String messageId = db.resolveAndMergeMessageId(serverId, clientContext);
-            if (messageId == null) return;
-            if (!shouldCaptureStored(db.getSenderId(messageId), myUserId())) return;
-            markDeletedAndNotify(db, messageId);
+            if (messageId == null) return false;
+            if (!shouldCaptureStored(db.getSenderId(messageId), myUserId())) return false;
+            getWorker().post(() -> {
+                try {
+                    markDeletedAndNotify(db, messageId);
+                } catch (Exception e) {
+                    piko("SavedMessagesHook.markDeletedAndNotify: " + e);
+                }
+            });
+            return true;
         } catch (Exception e) {
-            piko("SavedMessagesHook.processMessageHiddenFromDb: " + e);
+            piko("SavedMessagesHook.onMessageHiddenFromDb: " + e);
+            return false;
         }
     }
 }

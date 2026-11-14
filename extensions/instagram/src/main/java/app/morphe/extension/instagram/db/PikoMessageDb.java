@@ -366,6 +366,15 @@ public class PikoMessageDb extends SQLiteOpenHelper {
     }
 
     /** Permanently remove saved messages from the vault as one atomic operation. */
+    public void clearAll() {
+        try {
+            SQLiteDatabase db = getWritableDatabase();
+            db.delete(TABLE, null, null);
+            db.delete(DIR_TABLE, null, null);
+        } catch (Exception ignored) {
+        }
+    }
+
     public void deleteSaved(List<String> messageIds) {
         if (messageIds == null || messageIds.isEmpty()) return;
         SQLiteDatabase db = getWritableDatabase();

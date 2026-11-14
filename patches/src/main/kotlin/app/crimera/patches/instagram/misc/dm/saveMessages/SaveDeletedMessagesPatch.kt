@@ -101,18 +101,23 @@ val saveDeletedMessagesPatch =
                 """.trimIndent(),
             )
 
-            // Hook 4: SQLite DAO delete, inject at entry so our DB record is still present when the hook fires.
+            // Hook 4: SQLite DAO delete, inject at entry so we can keep unsent messages in the chat.
             DirectItemDbHideFingerprint.method.apply {
                 val regs = getFreeRegisterProvider(index = 0, numberOfFreeRegistersNeeded = 2)
                 val serverIdRegister = regs.getFreeRegister()
                 val clientContextRegister = regs.getFreeRegister()
 
-                addInstructions(
+                addInstructionsWithLabels(
                     0,
                     """
                     move-object/from16 v$serverIdRegister, p2
                     move-object/from16 v$clientContextRegister, p3
-                    invoke-static {v$serverIdRegister, v$clientContextRegister}, $HOOK_CLASS->onMessageHiddenFromDb(Ljava/lang/String;Ljava/lang/String;)V
+                    invoke-static {v$serverIdRegister, v$clientContextRegister}, $HOOK_CLASS->onMessageHiddenFromDb(Ljava/lang/String;Ljava/lang/String;)Z
+                    move-result v$serverIdRegister
+                    if-eqz v$serverIdRegister, :allow_hide
+                    return-void
+                    :allow_hide
+                    nop
                     """.trimIndent(),
                 )
             }
