@@ -92,23 +92,13 @@ public class SavedMessagesHook {
     }
 
     private static void rememberMyUserId(String id) {
-        if (id == null || id.isEmpty()) return;
-        String previous = myUserId();
-        if (id.equals(previous)) return;
+        if (id == null || id.isEmpty() || id.equals(sMyUserId)) return;
         sMyUserId = id;
         try {
             Context context = PikoUtils.getContext();
             if (context != null) {
                 context.getSharedPreferences("piko_dm", Context.MODE_PRIVATE)
                         .edit().putString("my_user_id", id).apply();
-                if (previous != null && !previous.isEmpty()) {
-                    getWorker().post(() -> {
-                        try {
-                            PikoMessageDb.getInstance(context).clearAll();
-                        } catch (Throwable ignored) {
-                        }
-                    });
-                }
             }
         } catch (Exception ignored) {
         }
