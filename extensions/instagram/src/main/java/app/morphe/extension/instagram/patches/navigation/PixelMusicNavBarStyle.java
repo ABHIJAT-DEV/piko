@@ -140,8 +140,6 @@ public final class PixelMusicNavBarStyle {
     private static void applyStyle(Activity activity, ViewGroup tabBar, BarState state) {
         boolean materialYou = MaterialYouTheme.isMaterialYouEnabled();
         boolean dark = UI.isDarkMode();
-        int pillColor = resolvePillColor(activity, materialYou, dark);
-        int onPillColor = resolveOnPillColor(materialYou, dark);
         int profileTabId = ResourceUtils.getIdentifier(ResourceType.ID, "profile_tab");
         int clipsTabId = ResourceUtils.getIdentifier(ResourceType.ID, "clips_tab");
         int pillHeight = dp(activity, 64);
@@ -160,6 +158,10 @@ public final class PixelMusicNavBarStyle {
                 }
             }
         }
+
+        boolean effectiveDark = dark || isReelsSelected;
+        int pillColor = resolvePillColor(activity, materialYou, effectiveDark);
+        int onPillColor = resolveOnPillColor(materialYou, effectiveDark);
 
         boolean backgroundOverwritten = state.pillDrawable == null
                 || tabBar.getBackground() != state.pillDrawable;
