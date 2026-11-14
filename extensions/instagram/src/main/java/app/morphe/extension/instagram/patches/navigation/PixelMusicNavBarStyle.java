@@ -223,7 +223,20 @@ public final class PixelMusicNavBarStyle {
             }
         }
 
-        applyReelsFullscreenLayout(activity, contentRoot, isReelsSelected, state);
+        boolean sheetOpen = hasOpenSheet(activity, activity.getWindow() != null ? activity.getWindow().getDecorView() : contentRoot, contentRoot);
+        if (sheetOpen) {
+            if (tabBar.getAlpha() != 0f) {
+                tabBar.setAlpha(0f);
+                tabBar.setElevation(0f);
+            }
+        } else {
+            if (tabBar.getAlpha() != 1f) {
+                tabBar.setAlpha(1f);
+                tabBar.setElevation(dp(activity, 8));
+            }
+        }
+
+        applyReelsFullscreenLayout(activity, contentRoot, isReelsSelected, sheetOpen, state);
 
         boolean needsTabRestyle = backgroundOverwritten
                 || themeChanged
@@ -374,15 +387,13 @@ public final class PixelMusicNavBarStyle {
             Activity activity,
             ViewGroup contentRoot,
             boolean isReelsSelected,
+            boolean sheetOpen,
             BarState state
     ) {
-        int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
-        boolean applyFullscreen = isReelsSelected && isReelsPlayerFullscreen(activity, contentRoot, screenHeight);
-
         Window window = activity.getWindow();
         if (window != null) {
             View decor = window.getDecorView();
-            if (applyFullscreen) {
+            if (isReelsSelected) {
                 if (!state.reelsSystemBarsApplied) {
                     state.savedStatusBarColor = window.getStatusBarColor();
                     state.savedSystemUiVisibility = decor.getSystemUiVisibility();
@@ -397,23 +408,27 @@ public final class PixelMusicNavBarStyle {
                     }
                     state.reelsSystemBarsApplied = true;
                 }
-                if (window.getStatusBarColor() != Color.TRANSPARENT) {
-                    window.setStatusBarColor(Color.TRANSPARENT);
-                }
-                if (Build.VERSION.SDK_INT >= 30) {
-                    WindowInsetsController ic = window.getInsetsController();
-                    if (ic != null && (ic.getSystemBarsAppearance() & WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS) != 0) {
-                        ic.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                // Keep system bars stable while a sheet/dialog is open on Reels to avoid
+                // triggering SurfaceView/TextureView relayouts that freeze video playback.
+                if (!sheetOpen) {
+                    if (window.getStatusBarColor() != Color.TRANSPARENT) {
+                        window.setStatusBarColor(Color.TRANSPARENT);
                     }
+                    if (Build.VERSION.SDK_INT >= 30) {
+                        WindowInsetsController ic = window.getInsetsController();
+                        if (ic != null && (ic.getSystemBarsAppearance() & WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS) != 0) {
+                            ic.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                        }
+                    }
+                    int flags = decor.getSystemUiVisibility()
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+                    flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+                    if (decor.getSystemUiVisibility() != flags) {
+                        decor.setSystemUiVisibility(flags);
+                    }
+                    clearTopStatusInsets(contentRoot, state);
                 }
-                int flags = decor.getSystemUiVisibility()
-                        | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                        | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
-                flags &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
-                if (decor.getSystemUiVisibility() != flags) {
-                    decor.setSystemUiVisibility(flags);
-                }
-                clearTopStatusInsets(contentRoot, state);
             } else if (state.reelsSystemBarsApplied) {
                 state.reelsSystemBarsApplied = false;
                 window.setStatusBarColor(state.savedStatusBarColor);
@@ -428,7 +443,7 @@ public final class PixelMusicNavBarStyle {
             }
         }
 
-        if (!applyFullscreen) {
+        if (!isReelsSelected) {
             for (View header : state.hiddenReelsHeaders) {
                 if (header != null && header.getVisibility() == View.GONE) {
                     header.setVisibility(View.VISIBLE);
@@ -444,14 +459,15 @@ public final class PixelMusicNavBarStyle {
             return;
         }
 
-        if (contentRoot == null) {
+        if (contentRoot == null || sheetOpen) {
             return;
         }
 
+        int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
         int topThreshold = (int) (screenHeight * 0.18f);
         int bottomThreshold = (int) (screenHeight * 0.78f);
         int maxOverlayHeight = (int) (screenHeight * 0.62f);
-        float liftOffset = -dp(activity, 56);
+        float liftOffset = -dp(activity, 32);
 
         List<View> headers = new ArrayList<>();
         List<View> overlays = new ArrayList<>();
@@ -477,15 +493,21 @@ public final class PixelMusicNavBarStyle {
         }
     }
 
-    private static boolean isReelsPlayerFullscreen(Activity activity, ViewGroup contentRoot, int screenHeight) {
-        if (!activity.hasWindowFocus() || contentRoot == null) {
-            return false;
+    private static boolean hasOpenSheet(Activity activity, View decor, ViewGroup contentRoot) {
+        if (!activity.hasWindowFocus()) {
+            return true;
         }
-        if (hasOpenCommentOrSheet(contentRoot, screenHeight, 0)) {
-            return false;
+        int screenHeight = activity.getResources().getDisplayMetrics().heightPixels;
+        if (decor != null && hasOpenCommentOrSheet(decor, screenHeight, 0)) {
+            return true;
         }
-        int maxVideoHeight = findMaxVideoViewHeight(contentRoot, 0);
-        return maxVideoHeight <= 0 || maxVideoHeight >= (int) (screenHeight * 0.65f);
+        if (contentRoot != null) {
+            int maxVideoHeight = findMaxVideoViewHeight(contentRoot, 0);
+            if (maxVideoHeight > 0 && maxVideoHeight < (int) (screenHeight * 0.65f)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static boolean hasOpenCommentOrSheet(View view, int screenHeight, int depth) {
@@ -500,7 +522,11 @@ public final class PixelMusicNavBarStyle {
                 String name = view.getResources().getResourceEntryName(view.getId());
                 if (name != null) {
                     String lower = name.toLowerCase(java.util.Locale.ROOT);
-                    if (lower.contains("comment") || lower.contains("bottom_sheet") || lower.contains("sheet_container")) {
+                    if (lower.contains("comment")
+                            || lower.contains("bottom_sheet")
+                            || lower.contains("sheet_container")
+                            || lower.contains("action_sheet")
+                            || lower.contains("igds_bottom_sheet")) {
                         return true;
                     }
                 }
