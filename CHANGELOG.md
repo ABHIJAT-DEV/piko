@@ -1,3 +1,9 @@
+## [1.11.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.1...v1.11.2) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** restore navbar visibility on Home and match status bar to rounded header ([abd3457](https://github.com/ABHIJAT-DEV/piko/commit/abd345712383a3a88796da5869ee59255890bc21))
+
 ## [1.11.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.0...v1.11.1) (2026-11-14)
 
 ### 🐛 Bug Fixes
