@@ -11,11 +11,15 @@ import android.content.Context;
 import android.graphics.Color;
 import android.graphics.PorterDuff;
 import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.ColorDrawable;
+import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.InsetDrawable;
 import android.os.Build;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.widget.ImageView;
@@ -122,28 +126,46 @@ public final class PixelMusicNavBarStyle {
         int primaryColor = resolvePrimaryColor(activity);
         int bgColor = UI.getBackgroundColor();
         int profileTabId = ResourceUtils.getIdentifier(ResourceType.ID, "profile_tab");
+        int pillHeight = dp(activity, 64);
 
-        if (!state.containerStyled || state.lastPrimaryColor != primaryColor) {
-            state.containerStyled = true;
-            state.lastPrimaryColor = primaryColor;
+        boolean backgroundOverwritten = state.pillDrawable == null
+                || tabBar.getBackground() != state.pillDrawable;
+        boolean themeChanged = state.lastPrimaryColor != primaryColor
+                || state.lastBgColor != bgColor;
 
-            GradientDrawable pill = new GradientDrawable();
-            pill.setShape(GradientDrawable.RECTANGLE);
-            pill.setCornerRadius(dp(activity, 32));
-            pill.setColor(primaryColor);
-            tabBar.setBackground(pill);
+        if (backgroundOverwritten || themeChanged) {
+            if (state.pillDrawable == null) {
+                state.pillDrawable = new GradientDrawable();
+                state.pillDrawable.setShape(GradientDrawable.RECTANGLE);
+            }
+            state.pillDrawable.setCornerRadius(dp(activity, 32));
+            state.pillDrawable.setColor(primaryColor);
+
+            tabBar.setBackground(state.pillDrawable);
+            tabBar.setOutlineProvider(ViewOutlineProvider.BACKGROUND);
             tabBar.setClipToOutline(true);
             tabBar.setElevation(dp(activity, 8));
+            tabBar.setMinimumHeight(pillHeight);
 
             int hPad = dp(activity, 8);
-            int vPad = dp(activity, 5);
-            tabBar.setPadding(hPad, vPad, hPad, vPad);
+            int vPad = dp(activity, 8);
+            if (tabBar.getPaddingLeft() != hPad || tabBar.getPaddingTop() != vPad
+                    || tabBar.getPaddingRight() != hPad || tabBar.getPaddingBottom() != vPad) {
+                tabBar.setPadding(hPad, vPad, hPad, vPad);
+            }
+        }
 
-            ViewGroup.LayoutParams lp = tabBar.getLayoutParams();
+        ViewGroup.LayoutParams lp = tabBar.getLayoutParams();
+        if (lp != null) {
+            boolean lpChanged = false;
+            if (lp.height != pillHeight) {
+                lp.height = pillHeight;
+                lpChanged = true;
+            }
             if (lp instanceof ViewGroup.MarginLayoutParams) {
                 ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
                 int hMargin = dp(activity, 16);
-                int bMargin = dp(activity, 10);
+                int bMargin = dp(activity, 12);
                 int tMargin = dp(activity, 4);
                 if (mlp.leftMargin != hMargin || mlp.rightMargin != hMargin
                         || mlp.bottomMargin != bMargin || mlp.topMargin != tMargin) {
@@ -151,18 +173,15 @@ public final class PixelMusicNavBarStyle {
                     mlp.rightMargin = hMargin;
                     mlp.bottomMargin = bMargin;
                     mlp.topMargin = tMargin;
-                    tabBar.setLayoutParams(mlp);
+                    lpChanged = true;
                 }
             }
-
-            ViewParent parent = tabBar.getParent();
-            if (parent instanceof ViewGroup) {
-                ViewGroup parentGroup = (ViewGroup) parent;
-                parentGroup.setBackgroundColor(Color.TRANSPARENT);
-                parentGroup.setClipChildren(false);
-                parentGroup.setClipToPadding(false);
+            if (lpChanged) {
+                tabBar.setLayoutParams(lp);
             }
         }
+
+        clearParentBlockAndDividers(activity, tabBar);
 
         int childCount = tabBar.getChildCount();
         long selectionMask = 0L;
@@ -173,14 +192,36 @@ public final class PixelMusicNavBarStyle {
             }
         }
 
-        if (state.lastSelectionMask == selectionMask
-                && state.lastBgColor == bgColor
-                && state.lastChildCount == childCount) {
+        boolean needsTabRestyle = backgroundOverwritten
+                || themeChanged
+                || state.lastSelectionMask != selectionMask
+                || state.lastChildCount != childCount;
+
+        if (!needsTabRestyle) {
+            // Even if selection didn't change, verify Instagram didn't clear the active pill background.
+            for (int i = 0; i < childCount && i < 63; i++) {
+                View child = tabBar.getChildAt(i);
+                if (child != null && child.getVisibility() == View.VISIBLE) {
+                    boolean selected = (selectionMask & (1L << i)) != 0L;
+                    if (selected && !(child.getBackground() instanceof InsetDrawable)) {
+                        needsTabRestyle = true;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (!needsTabRestyle) {
             return;
         }
-        state.lastSelectionMask = selectionMask;
+
+        state.lastPrimaryColor = primaryColor;
         state.lastBgColor = bgColor;
+        state.lastSelectionMask = selectionMask;
         state.lastChildCount = childCount;
+
+        int insetH = dp(activity, 4);
+        int insetV = dp(activity, 2);
 
         for (int i = 0; i < childCount; i++) {
             View child = tabBar.getChildAt(i);
@@ -191,9 +232,9 @@ public final class PixelMusicNavBarStyle {
             if (selected) {
                 GradientDrawable selectedPill = new GradientDrawable();
                 selectedPill.setShape(GradientDrawable.RECTANGLE);
-                selectedPill.setCornerRadius(dp(activity, 28));
+                selectedPill.setCornerRadius(dp(activity, 24));
                 selectedPill.setColor(bgColor);
-                child.setBackground(selectedPill);
+                child.setBackground(new InsetDrawable(selectedPill, insetH, insetV, insetH, insetV));
             } else {
                 child.setBackground(null);
             }
@@ -202,6 +243,35 @@ public final class PixelMusicNavBarStyle {
                 int iconTint = selected ? primaryColor : bgColor;
                 tintTabIcons(child, iconTint, dp(activity, 14));
             }
+        }
+    }
+
+    private static void clearParentBlockAndDividers(Activity activity, ViewGroup tabBar) {
+        int maxDividerHeight = dp(activity, 3);
+        ViewParent current = tabBar.getParent();
+        for (int depth = 0; depth < 2 && current instanceof ViewGroup; depth++) {
+            ViewGroup parentGroup = (ViewGroup) current;
+            Drawable bg = parentGroup.getBackground();
+            if (bg != null && (!(bg instanceof ColorDrawable) || ((ColorDrawable) bg).getColor() != Color.TRANSPARENT)) {
+                parentGroup.setBackgroundColor(Color.TRANSPARENT);
+            }
+            parentGroup.setClipChildren(false);
+            parentGroup.setClipToPadding(false);
+
+            if (depth == 0) {
+                for (int i = 0; i < parentGroup.getChildCount(); i++) {
+                    View sibling = parentGroup.getChildAt(i);
+                    if (sibling != null && sibling != tabBar && sibling.getVisibility() == View.VISIBLE) {
+                        int h = sibling.getHeight();
+                        ViewGroup.LayoutParams slp = sibling.getLayoutParams();
+                        int lpH = slp != null ? slp.height : -1;
+                        if ((h > 0 && h <= maxDividerHeight) || (lpH > 0 && lpH <= maxDividerHeight)) {
+                            sibling.setVisibility(View.GONE);
+                        }
+                    }
+                }
+            }
+            current = parentGroup.getParent();
         }
     }
 
@@ -245,7 +315,7 @@ public final class PixelMusicNavBarStyle {
     }
 
     private static final class BarState {
-        boolean containerStyled;
+        GradientDrawable pillDrawable;
         int lastPrimaryColor;
         int lastBgColor;
         int lastChildCount = -1;
