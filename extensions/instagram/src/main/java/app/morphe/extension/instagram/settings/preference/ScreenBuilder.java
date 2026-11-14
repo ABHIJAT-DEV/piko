@@ -828,6 +828,13 @@ public class ScreenBuilder {
                         Settings.ROUNDED_FEED_MEDIA
                 )
         );
+        addPreference(
+                helper.switchPreference(
+                        str("piko_rounded_top_header"),
+                        str("piko_rounded_top_header_desc"),
+                        Settings.ROUNDED_TOP_HEADER
+                )
+        );
         if (SettingsStatus.removeEmptyBottomSpace) {
             addPreference(
                     helper.switchPreference(
