@@ -26,6 +26,7 @@ import android.view.ViewOutlineProvider;
 import android.view.ViewParent;
 import android.view.ViewTreeObserver;
 import android.view.Window;
+import android.view.WindowInsetsController;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ProgressBar;
@@ -376,10 +377,25 @@ public final class PixelMusicNavBarStyle {
                 if (!state.reelsSystemBarsApplied) {
                     state.savedStatusBarColor = window.getStatusBarColor();
                     state.savedSystemUiVisibility = decor.getSystemUiVisibility();
+                    if (Build.VERSION.SDK_INT >= 30) {
+                        WindowInsetsController ic = window.getInsetsController();
+                        if (ic != null) {
+                            state.savedAppearance = ic.getSystemBarsAppearance();
+                        }
+                    }
                     state.reelsSystemBarsApplied = true;
                 }
                 if (window.getStatusBarColor() != Color.TRANSPARENT) {
                     window.setStatusBarColor(Color.TRANSPARENT);
+                }
+                if (Build.VERSION.SDK_INT >= 29) {
+                    window.setStatusBarContrastEnforced(false);
+                }
+                if (Build.VERSION.SDK_INT >= 30) {
+                    WindowInsetsController ic = window.getInsetsController();
+                    if (ic != null) {
+                        ic.setSystemBarsAppearance(0, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                    }
                 }
                 int flags = decor.getSystemUiVisibility()
                         | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
@@ -388,10 +404,18 @@ public final class PixelMusicNavBarStyle {
                 if (decor.getSystemUiVisibility() != flags) {
                     decor.setSystemUiVisibility(flags);
                 }
+                clearTopStatusInsets(contentRoot, state);
             } else if (state.reelsSystemBarsApplied) {
                 state.reelsSystemBarsApplied = false;
                 window.setStatusBarColor(state.savedStatusBarColor);
                 decor.setSystemUiVisibility(state.savedSystemUiVisibility);
+                if (Build.VERSION.SDK_INT >= 30) {
+                    WindowInsetsController ic = window.getInsetsController();
+                    if (ic != null) {
+                        ic.setSystemBarsAppearance(state.savedAppearance, WindowInsetsController.APPEARANCE_LIGHT_STATUS_BARS);
+                    }
+                }
+                restoreTopStatusInsets(state);
             }
         }
 
@@ -588,12 +612,67 @@ public final class PixelMusicNavBarStyle {
         );
     }
 
+    private static void clearTopStatusInsets(ViewGroup contentRoot, BarState state) {
+        View current = contentRoot;
+        for (int depth = 0; depth < 6 && current != null; depth++) {
+            if (current.getPaddingTop() > 0) {
+                if (!state.savedTopPaddings.containsKey(current)) {
+                    state.savedTopPaddings.put(current, current.getPaddingTop());
+                }
+                current.setPadding(
+                        current.getPaddingLeft(),
+                        0,
+                        current.getPaddingRight(),
+                        current.getPaddingBottom()
+                );
+            }
+            ViewGroup.LayoutParams lp = current.getLayoutParams();
+            if (lp instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) lp;
+                if (mlp.topMargin > 0) {
+                    if (!state.savedTopMargins.containsKey(current)) {
+                        state.savedTopMargins.put(current, mlp.topMargin);
+                    }
+                    mlp.topMargin = 0;
+                    current.setLayoutParams(mlp);
+                }
+            }
+            if (current.getId() == android.R.id.content) {
+                break;
+            }
+            ViewParent parent = current.getParent();
+            current = parent instanceof View ? (View) parent : null;
+        }
+    }
+
+    private static void restoreTopStatusInsets(BarState state) {
+        for (Map.Entry<View, Integer> entry : state.savedTopPaddings.entrySet()) {
+            View v = entry.getKey();
+            if (v != null) {
+                v.setPadding(v.getPaddingLeft(), entry.getValue(), v.getPaddingRight(), v.getPaddingBottom());
+            }
+        }
+        state.savedTopPaddings.clear();
+        for (Map.Entry<View, Integer> entry : state.savedTopMargins.entrySet()) {
+            View v = entry.getKey();
+            if (v != null && v.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
+                ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) v.getLayoutParams();
+                mlp.topMargin = entry.getValue();
+                v.setLayoutParams(mlp);
+            }
+        }
+        state.savedTopMargins.clear();
+    }
+
     private static final class BarState {
         GradientDrawable pillDrawable;
         boolean tabBarDirectInVerticalLinear;
         boolean reelsSystemBarsApplied;
         int savedStatusBarColor;
         int savedSystemUiVisibility;
+        int savedAppearance;
+        final Map<View, Integer> savedTopPaddings = new WeakHashMap<>();
+        final Map<View, Integer> savedTopMargins = new WeakHashMap<>();
         final List<View> hiddenReelsHeaders = new ArrayList<>();
         final List<View> liftedOverlays = new ArrayList<>();
         int lastPillColor;
