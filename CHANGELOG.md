@@ -1,3 +1,9 @@
+## [1.0.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.0.0...v1.0.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** read device spoof settings directly at startup ([a4b9375](https://github.com/ABHIJAT-DEV/piko/commit/a4b93757d4d35e571e46e2682741727b8779684a))
+
 ## 1.0.0 (2026-11-14)
 
 ### ⚠ BREAKING CHANGES
