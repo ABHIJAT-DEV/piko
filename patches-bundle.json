@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-14T16:32:37",
-  "description": "## [1.10.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.9.1...v1.10.0) (2026-11-14)\n\n### 🐛 Bug Fixes\n\n* **feed:** pre-clip all feed media and carousels before layout/scroll ([6813f6a](https://github.com/ABHIJAT-DEV/piko/commit/6813f6a8be4c9d12f0bbef5856ecbd789428bda5))\n* **instagram:** invert black and white navbar colors between light and dark mode ([59bf541](https://github.com/ABHIJAT-DEV/piko/commit/59bf54144759578b36c3b3809005ed625207e2b6))\n\n### ✨ New Features\n\n* **dm:** replace sticker button with deleted messages icon and PixelMusic bottom sheet ([86efec9](https://github.com/ABHIJAT-DEV/piko/commit/86efec9c507d4000c72357f4a3c7d29fdc27363c))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.10.0/patches-1.10.0.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.10.0/patches-1.10.0.mpp.asc",
-  "version": "1.10.0"
+  "created_at": "2026-11-14T16:38:56",
+  "description": "## [1.11.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.10.0...v1.11.0) (2026-11-14)\n\n### ✨ New Features\n\n* **instagram:** always use black pill with white active tab on Reels ([bce0a6d](https://github.com/ABHIJAT-DEV/piko/commit/bce0a6d496f1f59c932006aadb731ec5850f8a22))\n* **instagram:** apply PixelMusic rounded bottom-corner top header across all pages ([1e93ce2](https://github.com/ABHIJAT-DEV/piko/commit/1e93ce2925cb98c44fee94a81b317b0e29928792))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.0/patches-1.11.0.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.0/patches-1.11.0.mpp.asc",
+  "version": "1.11.0"
 }

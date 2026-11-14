@@ -1,3 +1,10 @@
+## [1.11.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.10.0...v1.11.0) (2026-11-14)
+
+### ✨ New Features
+
+* **instagram:** always use black pill with white active tab on Reels ([bce0a6d](https://github.com/ABHIJAT-DEV/piko/commit/bce0a6d496f1f59c932006aadb731ec5850f8a22))
+* **instagram:** apply PixelMusic rounded bottom-corner top header across all pages ([1e93ce2](https://github.com/ABHIJAT-DEV/piko/commit/1e93ce2925cb98c44fee94a81b317b0e29928792))
+
 ## [1.10.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.9.1...v1.10.0) (2026-11-14)
 
 ### 🐛 Bug Fixes
