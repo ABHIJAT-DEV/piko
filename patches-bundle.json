@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-14T15:30:59",
-  "description": "## [1.8.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.7.0...v1.8.0) (2026-11-14)\n\n### ✨ New Features\n\n* **instagram:** round feed post media corners with PixelMusic card radius ([6336bd9](https://github.com/ABHIJAT-DEV/piko/commit/6336bd9c306260b2ce133a598b07293d4fda3c8f))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.8.0/patches-1.8.0.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.8.0/patches-1.8.0.mpp.asc",
-  "version": "1.8.0"
+  "created_at": "2026-11-14T15:37:13",
+  "description": "## [1.9.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.8.0...v1.9.0) (2026-11-14)\n\n### ✨ New Features\n\n* **dm:** show deleted messages inline inside the specific chat with badge and timestamp ([0ccd4ac](https://github.com/ABHIJAT-DEV/piko/commit/0ccd4ac08d472a20792e257cc91695b99cf2724d))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.9.0/patches-1.9.0.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.9.0/patches-1.9.0.mpp.asc",
+  "version": "1.9.0"
 }

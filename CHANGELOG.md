@@ -1,3 +1,9 @@
+## [1.9.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.8.0...v1.9.0) (2026-11-14)
+
+### ✨ New Features
+
+* **dm:** show deleted messages inline inside the specific chat with badge and timestamp ([0ccd4ac](https://github.com/ABHIJAT-DEV/piko/commit/0ccd4ac08d472a20792e257cc91695b99cf2724d))
+
 ## [1.8.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.7.0...v1.8.0) (2026-11-14)
 
 ### ✨ New Features
