@@ -7,8 +7,6 @@
 package app.morphe.extension.instagram.patches.device;
 
 import android.app.Application;
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 
@@ -20,7 +18,7 @@ import java.util.Properties;
 /**
  * Device spoofing: rewrites the device identity in {@link Build} at app
  * startup, before Instagram reads it, so the app reports the device chosen
- * for it instead of the real one.
+ * in Morphe at patch time instead of the real one.
  *
  * <p>The point is features Instagram gates to other phones, such as HDR
  * playback quality: Meta serves HDR or SDR based on the reported device.
@@ -32,32 +30,16 @@ import java.util.Properties;
  * <p>{@link Build.VERSION} is deliberately left real: faking it changes
  * API-level behaviour across the whole app. This class never throws.</p>
  *
- * <p>Which device to report comes from, in order:</p>
- * <ol>
- *     <li>The in-app Piko settings, once the user has configured them.
- *     They are read straight from the {@code piko_settings} preferences
- *     file: the usual {@code Pref}/{@code SharedPref} path needs the
- *     extension context, which is only initialised later during startup,
- *     so at this point in {@code onCreate} it would silently return the
- *     defaults (spoofing off) and the spoof would never apply.</li>
- *     <li>The configuration baked into the app at patch time
- *     ({@code assets/piko/device_spoof.properties}, written by the Device
- *     spoofing patch from the model chosen in Morphe). This is what makes
- *     the spoof active from the very first launch, before any login and
- *     before the in-app settings exist.</li>
- * </ol>
+ * <p>The device to report is read from the configuration baked into the
+ * app at patch time ({@code assets/piko/device_spoof.properties}, written
+ * by the Device spoofing patch from the model chosen in Morphe), so the
+ * spoof is active from the very first launch, before any login. There is
+ * deliberately no in-app setting for this: one place decides, and it
+ * cannot be lost by a settings reset.</p>
  */
 public final class DeviceSpoof {
 
     private static final String TAG = "Piko";
-
-    private static final String PREFS_NAME = "piko_settings";
-    private static final String KEY_ENABLED = "device_spoof";
-    private static final String KEY_PROFILE = "device_spoof_profile";
-    private static final String KEY_CUSTOM_MANUFACTURER = "device_spoof_custom_manufacturer";
-    private static final String KEY_CUSTOM_BRAND = "device_spoof_custom_brand";
-    private static final String KEY_CUSTOM_MODEL = "device_spoof_custom_model";
-    private static final String KEY_CUSTOM_DEVICE = "device_spoof_custom_device";
 
     private static final String BAKED_ASSET = "piko/device_spoof.properties";
 
@@ -81,7 +63,7 @@ public final class DeviceSpoof {
     }
 
     /**
-     * Applies the configured profile. Called from InstagramAppShell.onCreate
+     * Applies the baked-in profile. Called from InstagramAppShell.onCreate
      * by the Device spoofing patch, before Instagram's own startup code
      * reads the device identity. Idempotent per process.
      */
@@ -91,18 +73,7 @@ public final class DeviceSpoof {
             Application app = currentApplication();
             if (app == null) return;
 
-            String[] profile = null;
-            SharedPreferences prefs =
-                    app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
-            if (prefs != null && prefs.contains(KEY_ENABLED)) {
-                // The user has configured the in-app settings: they win.
-                if (!readBoolean(prefs, KEY_ENABLED, false)) return;
-                profile = resolveProfile(prefs);
-            } else {
-                // Nothing configured in-app yet: use the model baked in at
-                // patch time, so the spoof works from the first launch.
-                profile = resolveBakedProfile(app);
-            }
+            String[] profile = resolveBakedProfile(app);
             if (profile == null) return;
             applied = true;
 
@@ -133,8 +104,7 @@ public final class DeviceSpoof {
 
     /**
      * The Application object, obtained without the extension framework:
-     * during Application.onCreate it already exists in ActivityThread,
-     * even though piko's context holder is not set yet.
+     * during Application.onCreate it already exists in ActivityThread.
      */
     private static Application currentApplication() {
         try {
@@ -144,35 +114,6 @@ public final class DeviceSpoof {
         } catch (Throwable ignored) {
             return null;
         }
-    }
-
-    private static boolean readBoolean(SharedPreferences prefs, String key, boolean defaultValue) {
-        try {
-            Object value = prefs.getAll().get(key);
-            if (value instanceof Boolean) return (Boolean) value;
-            if (value != null) return Boolean.parseBoolean(value.toString());
-        } catch (Throwable ignored) {
-        }
-        return defaultValue;
-    }
-
-    private static String readString(SharedPreferences prefs, String key, String defaultValue) {
-        try {
-            Object value = prefs.getAll().get(key);
-            if (value != null) return value.toString();
-        } catch (Throwable ignored) {
-        }
-        return defaultValue;
-    }
-
-    /** Returns {manufacturer, brand, model, device} or null for no spoof. */
-    private static String[] resolveProfile(SharedPreferences prefs) {
-        return profileFor(
-                readString(prefs, KEY_PROFILE, PROFILE_REAL),
-                readString(prefs, KEY_CUSTOM_MANUFACTURER, ""),
-                readString(prefs, KEY_CUSTOM_BRAND, ""),
-                readString(prefs, KEY_CUSTOM_MODEL, ""),
-                readString(prefs, KEY_CUSTOM_DEVICE, ""));
     }
 
     /** Returns {manufacturer, brand, model, device} or null for no spoof. */

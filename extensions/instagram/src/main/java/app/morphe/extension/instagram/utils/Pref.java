@@ -148,30 +148,6 @@ public class Pref {
         return SharedPref.getBooleanPref(Settings.DISABLE_VIDEO_AUTOPLAY);
     }
 
-    public static boolean deviceSpoof() {
-        return SharedPref.getBooleanPref(Settings.DEVICE_SPOOF);
-    }
-
-    public static String deviceSpoofProfile() {
-        return SharedPref.getStringPref(Settings.DEVICE_SPOOF_PROFILE);
-    }
-
-    public static String deviceSpoofCustomManufacturer() {
-        return removeLineBreaks(SharedPref.getStringPref(Settings.DEVICE_SPOOF_CUSTOM_MANUFACTURER));
-    }
-
-    public static String deviceSpoofCustomBrand() {
-        return removeLineBreaks(SharedPref.getStringPref(Settings.DEVICE_SPOOF_CUSTOM_BRAND));
-    }
-
-    public static String deviceSpoofCustomModel() {
-        return removeLineBreaks(SharedPref.getStringPref(Settings.DEVICE_SPOOF_CUSTOM_MODEL));
-    }
-
-    public static String deviceSpoofCustomDevice() {
-        return removeLineBreaks(SharedPref.getStringPref(Settings.DEVICE_SPOOF_CUSTOM_DEVICE));
-    }
-
     public
     static boolean disableStories() {
         return SharedPref.getBooleanPref(Settings.DISABLE_STORIES);

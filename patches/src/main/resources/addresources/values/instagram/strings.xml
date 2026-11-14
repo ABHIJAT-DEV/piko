@@ -107,14 +107,6 @@
     <string name="piko_hide_reshare_button">Hide reshare button</string>
     <string name="piko_hide_reels_follow_button_desc">Removes the follow button from the Reels author row</string>
     <string name="piko_disable_video_autoplay">Disable video autoplay</string>
-    <string name="piko_device_spoofing">Device spoofing</string>
-    <string name="piko_device_spoofing_desc">Report a different device model to Instagram, for features gated to other phones like HDR quality</string>
-    <string name="piko_device_spoof_profile">Device model</string>
-    <string name="piko_device_spoof_profile_desc">The device Instagram thinks this is. Applies on restart</string>
-    <string name="piko_device_spoof_custom_manufacturer">Custom manufacturer</string>
-    <string name="piko_device_spoof_custom_brand">Custom brand</string>
-    <string name="piko_device_spoof_custom_model">Custom model</string>
-    <string name="piko_device_spoof_custom_device">Custom device codename</string>
     <string name="piko_disable_double_tap_like_post">Disable double tap like on post</string>
     <string name="piko_disable_double_tap_like_reel">Disable double tap like on reel</string>
     <string name="piko_disable_double_tap_like_comment">Disable double tap like on comment</string>

@@ -10,7 +10,6 @@ import app.crimera.patches.instagram.misc.extension.hooks.instagramInitHook
 import app.crimera.patches.instagram.misc.settings.settingsPatch
 import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
 import app.crimera.patches.instagram.utils.Constants.DEVICE_SPOOF_DESCRIPTOR
-import app.crimera.patches.instagram.utils.enableSettings
 import app.morphe.patcher.extensions.InstructionExtensions.addInstruction
 import app.morphe.patcher.extensions.InstructionExtensions.instructions
 import app.morphe.patcher.patch.option
@@ -23,8 +22,8 @@ import com.android.tools.smali.dexlib2.Opcode
 val deviceSpoofPatch =
     patch(
         name = "Device spoofing",
-        description = "Reports the device model chosen here (or later in the Piko settings) " +
-            "to Instagram, for features gated to other phones such as HDR playback quality.",
+        description = "Reports the device model chosen here to Instagram, " +
+            "for features gated to other phones such as HDR playback quality.",
     ) {
         dependsOn(settingsPatch)
         compatibleWith(COMPATIBILITY_INSTAGRAM)
@@ -44,7 +43,7 @@ val deviceSpoofPatch =
             title = "Device model",
             description = "The device Instagram is told this phone is. It is baked into the " +
                 "patched app and applies from the very first launch, before any login. " +
-                "It can later be changed in the Piko settings inside the app.",
+                "To change it, patch the app again with a different model.",
             required = true,
         )
 
@@ -103,6 +102,5 @@ val deviceSpoofPatch =
                     "invoke-static {}, $DEVICE_SPOOF_DESCRIPTOR->applyEarly()V",
                 )
             }
-            enableSettings("deviceSpoof")
         }
     }

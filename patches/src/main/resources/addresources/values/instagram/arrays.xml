@@ -302,24 +302,4 @@
         <item>reels</item>
     </string-array>
 
-    <string-array name="piko_array_device_spoof_profile">
-        <item>Real device</item>
-        <item>Pixel 9 Pro XL</item>
-        <item>Pixel 10 Pro XL</item>
-        <item>Galaxy S26 Ultra</item>
-        <item>Galaxy S25 Ultra</item>
-        <item>Realme P3 Pro</item>
-        <item>Custom</item>
-    </string-array>
-
-    <string-array name="piko_array_device_spoof_profile_val">
-        <item>real</item>
-        <item>pixel_9_pro_xl</item>
-        <item>pixel_10_pro_xl</item>
-        <item>galaxy_s26_ultra</item>
-        <item>galaxy_s25_ultra</item>
-        <item>realme_p3_pro</item>
-        <item>custom</item>
-    </string-array>
-
 </resources>
