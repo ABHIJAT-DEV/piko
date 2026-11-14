@@ -1,3 +1,9 @@
+## [1.4.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.4.0...v1.4.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** lock PixelMusic navbar pill shape, size, and colors across all tabs ([57ef931](https://github.com/ABHIJAT-DEV/piko/commit/57ef931c1d817b6d9f1918840b5b8c63d7606eeb))
+
 ## [1.4.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.3.0...v1.4.0) (2026-11-14)
 
 ### ✨ New Features

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-14T14:12:01",
-  "description": "## [1.4.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.3.0...v1.4.0) (2026-11-14)\n\n### ✨ New Features\n\n* **instagram:** apply PixelMusic floating pill navigation bar style ([e05efd8](https://github.com/ABHIJAT-DEV/piko/commit/e05efd8884af9c7a36085724f517f643d4c25c5d))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.4.0/patches-1.4.0.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.4.0/patches-1.4.0.mpp.asc",
-  "version": "1.4.0"
+  "created_at": "2026-11-14T14:20:43",
+  "description": "## [1.4.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.4.0...v1.4.1) (2026-11-14)\n\n### 🐛 Bug Fixes\n\n* **instagram:** lock PixelMusic navbar pill shape, size, and colors across all tabs ([57ef931](https://github.com/ABHIJAT-DEV/piko/commit/57ef931c1d817b6d9f1918840b5b8c63d7606eeb))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.4.1/patches-1.4.1.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.4.1/patches-1.4.1.mpp.asc",
+  "version": "1.4.1"
 }
