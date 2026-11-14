@@ -99,9 +99,15 @@ public final class RoundedHeaderStyle {
                 }
                 int headerColor = InstagramPreferenceStyle.surfaceContainerHighColor();
                 Window window = activity.getWindow();
-                if (window != null && window.getStatusBarColor() != Color.TRANSPARENT
-                        && window.getStatusBarColor() != headerColor) {
+                if (window != null && window.getStatusBarColor() != headerColor) {
                     window.setStatusBarColor(headerColor);
+                }
+                View statusBarBg = decor.findViewById(android.R.id.statusBarBackground);
+                if (statusBarBg != null) {
+                    Drawable sbg = statusBarBg.getBackground();
+                    if (!(sbg instanceof ColorDrawable) || ((ColorDrawable) sbg).getColor() != headerColor) {
+                        statusBarBg.setBackgroundColor(headerColor);
+                    }
                 }
                 int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
                 android.graphics.Rect rect = new android.graphics.Rect();
@@ -215,6 +221,28 @@ public final class RoundedHeaderStyle {
             }
             if (parentGroup.getClipToPadding()) {
                 parentGroup.setClipToPadding(false);
+            }
+            if (parentGroup instanceof android.widget.LinearLayout
+                    && ((android.widget.LinearLayout) parentGroup).getOrientation() == android.widget.LinearLayout.VERTICAL
+                    && parentGroup.getPaddingTop() > 0) {
+                int pTop = parentGroup.getPaddingTop();
+                parentGroup.setPadding(
+                        parentGroup.getPaddingLeft(),
+                        0,
+                        parentGroup.getPaddingRight(),
+                        parentGroup.getPaddingBottom()
+                );
+                header.setPadding(
+                        header.getPaddingLeft(),
+                        header.getPaddingTop() + pTop,
+                        header.getPaddingRight(),
+                        header.getPaddingBottom()
+                );
+                ViewGroup.LayoutParams hlp = header.getLayoutParams();
+                if (hlp != null && hlp.height > 0) {
+                    hlp.height += pTop;
+                    header.setLayoutParams(hlp);
+                }
             }
             if (Math.abs(parentGroup.getHeight() - header.getHeight()) <= dp(header.getContext(), 4)) {
                 Drawable pbg = parentGroup.getBackground();

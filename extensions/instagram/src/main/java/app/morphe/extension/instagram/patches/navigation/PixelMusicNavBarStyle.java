@@ -223,7 +223,8 @@ public final class PixelMusicNavBarStyle {
             }
         }
 
-        boolean sheetOpen = hasOpenSheet(activity, activity.getWindow() != null ? activity.getWindow().getDecorView() : contentRoot, contentRoot);
+        boolean sheetOpen = isReelsSelected
+                && hasOpenSheet(activity, activity.getWindow() != null ? activity.getWindow().getDecorView() : contentRoot, contentRoot);
         if (sheetOpen) {
             if (tabBar.getAlpha() != 0f) {
                 tabBar.setAlpha(0f);
@@ -514,21 +515,20 @@ public final class PixelMusicNavBarStyle {
         if (view == null || view.getVisibility() != View.VISIBLE || depth > 24) {
             return false;
         }
-        if (view instanceof android.widget.EditText) {
-            return true;
-        }
-        if (view.getHeight() >= (int) (screenHeight * 0.25f) && view.getId() != View.NO_ID) {
+        if (view.getHeight() >= (int) (screenHeight * 0.30f) && view.getId() != View.NO_ID) {
             try {
                 String name = view.getResources().getResourceEntryName(view.getId());
                 if (name != null) {
                     String lower = name.toLowerCase(java.util.Locale.ROOT);
-                    if (lower.contains("comment")
-                            || lower.contains("bottom_sheet")
+                    if (lower.contains("bottom_sheet")
                             || lower.contains("sheet_container")
                             || lower.contains("action_sheet")
                             || lower.contains("igds_bottom_sheet")
                             || lower.contains("modal_sheet")) {
-                        return true;
+                        Rect r = new Rect();
+                        if (view.getGlobalVisibleRect(r) && r.bottom >= (int) (screenHeight * 0.90f)) {
+                            return true;
+                        }
                     }
                 }
             } catch (Throwable ignored) {
