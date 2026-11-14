@@ -453,7 +453,7 @@ public final class ChatDeletedOverlay {
                             } else {
                                 openImagePreview(activity, content);
                             }
-                        }, () -> {
+                        }, v -> {
                             startSelection(state, msgId, renderHolder[0]);
                             return true;
                         });
