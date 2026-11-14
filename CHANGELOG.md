@@ -1,3 +1,9 @@
+## [1.5.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.5.0...v1.5.1) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** remove laggy navbar animation, use black/white fallback, and fix Reels bottom overlap ([9c30fab](https://github.com/ABHIJAT-DEV/piko/commit/9c30fab9f56bdc7b4db70bdadf481737e8434935))
+
 ## [1.5.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.4.1...v1.5.0) (2026-11-14)
 
 ### 🐛 Bug Fixes
