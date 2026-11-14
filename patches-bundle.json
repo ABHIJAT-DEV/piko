@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-14T12:32:13",
-  "description": "## [1.0.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.0.0...v1.0.1) (2026-11-14)\n\n### 🐛 Bug Fixes\n\n* **instagram:** read device spoof settings directly at startup ([a4b9375](https://github.com/ABHIJAT-DEV/piko/commit/a4b93757d4d35e571e46e2682741727b8779684a))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.0.1/patches-1.0.1.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.0.1/patches-1.0.1.mpp.asc",
-  "version": "1.0.1"
+  "created_at": "2026-11-14T12:48:40",
+  "description": "## [1.1.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.0.1...v1.1.0) (2026-11-14)\n\n### ✨ New Features\n\n* **instagram:** choose the spoofed device model in Morphe before patching ([0e9e5a4](https://github.com/ABHIJAT-DEV/piko/commit/0e9e5a4419529e97d4cea74fa099d6cd5cc58716))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.1.0/patches-1.1.0.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.1.0/patches-1.1.0.mpp.asc",
+  "version": "1.1.0"
 }

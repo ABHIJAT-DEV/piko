@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.0.1...v1.1.0) (2026-11-14)
+
+### ✨ New Features
+
+* **instagram:** choose the spoofed device model in Morphe before patching ([0e9e5a4](https://github.com/ABHIJAT-DEV/piko/commit/0e9e5a4419529e97d4cea74fa099d6cd5cc58716))
+
 ## [1.0.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.0.0...v1.0.1) (2026-11-14)
 
 ### 🐛 Bug Fixes

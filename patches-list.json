@@ -1,6 +1,6 @@
 {
   "NOTE": "Do NOT manually edit this file. This file is automatically updated when semantic release (release.yml) runs. Manually editing this file can break your releases and break third party tools that use this file.",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "patches": [
     {
       "name": "Add ability to copy media link",
@@ -932,7 +932,7 @@
     },
     {
       "name": "Device spoofing",
-      "description": "Reports the device model chosen in the Piko settings to Instagram, for features gated to other phones such as HDR playback quality.",
+      "description": "Reports the device model chosen here (or later in the Piko settings) to Instagram, for features gated to other phones such as HDR playback quality.",
       "default": true,
       "category": null,
       "compatiblePackages": [
@@ -957,7 +957,61 @@
           ]
         }
       ],
-      "options": []
+      "options": [
+        {
+          "key": "deviceModel",
+          "title": "Device model",
+          "description": "The device Instagram is told this phone is. It is baked into the patched app and applies from the very first launch, before any login. It can later be changed in the Piko settings inside the app.",
+          "required": true,
+          "type": "kotlin.String",
+          "default": "galaxy_s26_ultra",
+          "values": {
+            "Real device (no spoofing)": "real",
+            "Pixel 9 Pro XL": "pixel_9_pro_xl",
+            "Pixel 10 Pro XL": "pixel_10_pro_xl",
+            "Galaxy S26 Ultra": "galaxy_s26_ultra",
+            "Galaxy S25 Ultra": "galaxy_s25_ultra",
+            "Realme P3 Pro": "realme_p3_pro",
+            "Custom": "custom"
+          }
+        },
+        {
+          "key": "customManufacturer",
+          "title": "Custom manufacturer",
+          "description": "Only used when Device model is Custom. Example: Google",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "customBrand",
+          "title": "Custom brand",
+          "description": "Only used when Device model is Custom. Example: google",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "customModel",
+          "title": "Custom model",
+          "description": "Only used when Device model is Custom. Example: Pixel 9 Pro XL",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "customDevice",
+          "title": "Custom device codename",
+          "description": "Only used when Device model is Custom. Example: komodo",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        }
+      ]
     },
     {
       "name": "Disable Play Store updates",
