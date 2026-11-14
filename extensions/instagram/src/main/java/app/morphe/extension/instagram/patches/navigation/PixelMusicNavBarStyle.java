@@ -594,14 +594,14 @@ public final class PixelMusicNavBarStyle {
             } catch (Throwable ignored) {
             }
         }
-        return dark ? BW_LIGHT : BW_DARK;
+        return dark ? BW_DARK : BW_LIGHT;
     }
 
     private static int resolveOnPillColor(boolean materialYou, boolean dark) {
         if (materialYou) {
             return UI.getBackgroundColor();
         }
-        return dark ? BW_DARK : Color.WHITE;
+        return dark ? Color.WHITE : BW_DARK;
     }
 
     private static int dp(Context context, float value) {
