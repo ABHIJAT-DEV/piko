@@ -42,7 +42,15 @@ public final class RoundedHeaderStyle {
     private static final String[] HEADER_IDS = {
             "action_bar_container",
             "action_bar",
-            "direct_thread_header"
+            "direct_thread_header",
+            "direct_inbox_header",
+            "inbox_header",
+            "search_bar_container",
+            "search_header",
+            "app_bar_layout",
+            "header_container",
+            "top_bar",
+            "toolbar"
     };
     private static final Map<View, HeaderState> ATTACHED_DECOR = new WeakHashMap<>();
 
@@ -74,7 +82,8 @@ public final class RoundedHeaderStyle {
             final int clipsTabId = ResourceUtils.getIdentifier(ResourceType.ID, "clips_tab");
             final float radius = dp(activity, 28);
             final int minHeight = dp(activity, 44);
-            final int maxHeight = dp(activity, 88);
+            final int maxHeight = dp(activity, 140);
+            final int maxTopY = dp(activity, 64);
             final int maxDividerHeight = dp(activity, 3);
 
             final Runnable applyPass = () -> {
@@ -88,14 +97,15 @@ public final class RoundedHeaderStyle {
                         return;
                     }
                 }
-                int headerColor = InstagramPreferenceStyle.surfaceContainerColor();
+                int headerColor = InstagramPreferenceStyle.surfaceContainerHighColor();
                 Window window = activity.getWindow();
                 if (window != null && window.getStatusBarColor() != Color.TRANSPARENT
                         && window.getStatusBarColor() != headerColor) {
                     window.setStatusBarColor(headerColor);
                 }
                 int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
-                scanAndStyleHeaders(decor, headerIds, headerColor, radius, screenWidth, minHeight, maxHeight, maxDividerHeight, state, 0);
+                android.graphics.Rect rect = new android.graphics.Rect();
+                scanAndStyleHeaders(decor, headerIds, headerColor, radius, screenWidth, minHeight, maxHeight, maxTopY, maxDividerHeight, rect, state, 0);
             };
 
             ViewTreeObserver vto = decor.getViewTreeObserver();
@@ -117,26 +127,56 @@ public final class RoundedHeaderStyle {
             int screenWidth,
             int minHeight,
             int maxHeight,
+            int maxTopY,
             int maxDividerHeight,
+            android.graphics.Rect rect,
             HeaderState state,
             int depth
     ) {
-        if (view == null || view.getVisibility() != View.VISIBLE || depth > 14) {
+        if (view == null || view.getVisibility() != View.VISIBLE || depth > 32) {
             return;
         }
         if (view instanceof ViewGroup) {
             ViewGroup group = (ViewGroup) view;
             int h = group.getHeight();
             int w = group.getWidth();
-            if (headerIds.contains(group.getId())
-                    && w >= (int) (screenWidth * 0.90f)
-                    && h >= minHeight && h <= maxHeight) {
-                styleHeader(group, headerColor, radius, maxDividerHeight, state);
-                return;
+            if (w >= (int) (screenWidth * 0.90f) && h >= minHeight && h <= maxHeight) {
+                boolean idMatch = headerIds.contains(group.getId()) || hasHeaderLikeIdName(group);
+                if (idMatch && group.getGlobalVisibleRect(rect) && rect.top <= maxTopY) {
+                    styleHeader(group, headerColor, radius, maxDividerHeight, state);
+                    return;
+                }
             }
             for (int i = 0; i < group.getChildCount(); i++) {
-                scanAndStyleHeaders(group.getChildAt(i), headerIds, headerColor, radius, screenWidth, minHeight, maxHeight, maxDividerHeight, state, depth + 1);
+                scanAndStyleHeaders(group.getChildAt(i), headerIds, headerColor, radius, screenWidth, minHeight, maxHeight, maxTopY, maxDividerHeight, rect, state, depth + 1);
             }
+        }
+    }
+
+    private static boolean hasHeaderLikeIdName(View view) {
+        int id = view.getId();
+        if (id == View.NO_ID) {
+            return false;
+        }
+        try {
+            String name = view.getResources().getResourceEntryName(id);
+            if (name == null) {
+                return false;
+            }
+            String lower = name.toLowerCase(java.util.Locale.ROOT);
+            return (lower.contains("action_bar")
+                    || lower.contains("toolbar")
+                    || lower.contains("top_bar")
+                    || lower.contains("app_bar")
+                    || lower.contains("thread_header")
+                    || lower.contains("inbox_header")
+                    || lower.contains("search_header"))
+                    && !lower.contains("button")
+                    && !lower.contains("icon")
+                    && !lower.contains("title")
+                    && !lower.contains("text");
+        } catch (Throwable ignored) {
+            return false;
         }
     }
 
@@ -170,8 +210,18 @@ public final class RoundedHeaderStyle {
         ViewParent parent = header.getParent();
         if (parent instanceof ViewGroup) {
             ViewGroup parentGroup = (ViewGroup) parent;
-            parentGroup.setClipChildren(false);
-            parentGroup.setClipToPadding(false);
+            if (parentGroup.getClipChildren()) {
+                parentGroup.setClipChildren(false);
+            }
+            if (parentGroup.getClipToPadding()) {
+                parentGroup.setClipToPadding(false);
+            }
+            if (Math.abs(parentGroup.getHeight() - header.getHeight()) <= dp(header.getContext(), 4)) {
+                Drawable pbg = parentGroup.getBackground();
+                if (pbg != null && (!(pbg instanceof ColorDrawable) || ((ColorDrawable) pbg).getColor() != Color.TRANSPARENT)) {
+                    parentGroup.setBackgroundColor(Color.TRANSPARENT);
+                }
+            }
             for (int i = 0; i < parentGroup.getChildCount(); i++) {
                 View sibling = parentGroup.getChildAt(i);
                 if (sibling != null && sibling != header && sibling.getVisibility() == View.VISIBLE) {

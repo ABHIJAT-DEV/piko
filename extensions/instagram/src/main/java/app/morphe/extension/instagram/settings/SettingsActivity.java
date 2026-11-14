@@ -271,7 +271,8 @@ public final class SettingsActivity {
             ));
 
             InstagramPreferenceStyle.applySystemBarStyle(activity);
-            activity.getWindow().setStatusBarColor(InstagramPreferenceStyle.surfaceContainerColor());
+            int headerColor = InstagramPreferenceStyle.surfaceContainerHighColor();
+            activity.getWindow().setStatusBarColor(headerColor);
 
             // ---------- Toolbar ----------
             toolbar = new LinearLayout(activity);
@@ -280,7 +281,7 @@ public final class SettingsActivity {
             toolbar.setLayoutDirection(View.LAYOUT_DIRECTION_LOCALE);
             android.graphics.drawable.GradientDrawable toolbarBg = new android.graphics.drawable.GradientDrawable();
             toolbarBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
-            toolbarBg.setColor(InstagramPreferenceStyle.surfaceContainerColor());
+            toolbarBg.setColor(headerColor);
             float headerRadius = InstagramPreferenceStyle.dp(activity, 28);
             toolbarBg.setCornerRadii(new float[]{
                     0f, 0f, 0f, 0f,
