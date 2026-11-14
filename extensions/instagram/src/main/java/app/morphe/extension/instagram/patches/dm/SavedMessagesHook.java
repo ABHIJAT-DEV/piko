@@ -221,6 +221,11 @@ public class SavedMessagesHook {
                                             String sessionViewerId, UserSession session) {
         try {
             DirectItem directItem = new DirectItem(item);
+            String threadId = directItem.getThreadId();
+            if (isBlank(threadId) && !isBlank(threadIdHint)) threadId = threadIdHint;
+            if (threadId == null) threadId = "";
+            if (!threadId.isEmpty()) sActiveThreadId = threadId;
+
             String senderId = directItem.getUserId();
             boolean sentByViewer = directItem.isSentByViewer();
             String viewerId = resolveViewerId(sentByViewer, senderId, sessionViewerId);
@@ -229,11 +234,6 @@ public class SavedMessagesHook {
             String serverId = directItem.getItemId();
             String clientContext = directItem.getClientContext();
             if (isBlank(serverId) && isBlank(clientContext)) return;
-
-            String threadId = directItem.getThreadId();
-            if (isBlank(threadId) && !isBlank(threadIdHint)) threadId = threadIdHint;
-            if (threadId == null) threadId = "";
-            if (!threadId.isEmpty()) sActiveThreadId = threadId;
 
             PikoMessageDb db = PikoMessageDb.getInstance(PikoUtils.getContext());
             String senderUsername = resolveSenderUsername(

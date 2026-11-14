@@ -250,10 +250,22 @@ public final class ChatDeletedOverlay {
             if (activity == null || activity.isFinishing() || activity.isDestroyed()) {
                 return;
             }
+            PikoMessageDb db = PikoMessageDb.getInstance(activity);
             String threadId = SavedMessagesHook.getActiveThreadId();
-            List<String[]> deleted = (threadId != null && !threadId.isEmpty())
-                    ? PikoMessageDb.getInstance(activity).getDeletedMessagesForThread(threadId)
-                    : new ArrayList<>();
+            List<String[]> deleted;
+            boolean showingAllFallback = false;
+            if (threadId != null && !threadId.isEmpty()) {
+                deleted = db.getDeletedMessagesForThread(threadId);
+            } else {
+                List<String[]> allDeleted = db.getDeletedMessages();
+                List<String[]> matched = filterByHeaderHint(activity, allDeleted);
+                if (!matched.isEmpty()) {
+                    deleted = matched;
+                } else {
+                    deleted = allDeleted;
+                    showingAllFallback = !allDeleted.isEmpty();
+                }
+            }
 
             Dialog dialog = new Dialog(activity);
             dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -320,9 +332,13 @@ public final class ChatDeletedOverlay {
             headerText.addView(titleView);
 
             TextView subView = new TextView(context);
-            subView.setText(deleted.isEmpty()
-                    ? "No unsent messages in this chat yet"
-                    : deleted.size() + (deleted.size() == 1 ? " unsent message" : " unsent messages"));
+            if (deleted.isEmpty()) {
+                subView.setText("No unsent messages in this chat yet");
+            } else if (showingAllFallback) {
+                subView.setText("Showing all " + deleted.size() + " saved unsent messages");
+            } else {
+                subView.setText(deleted.size() + (deleted.size() == 1 ? " unsent message" : " unsent messages"));
+            }
             subView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 13.5f);
             subView.setTextColor(secondaryText);
             headerText.addView(subView);
@@ -367,6 +383,19 @@ public final class ChatDeletedOverlay {
                     card.setOrientation(LinearLayout.VERTICAL);
                     card.setPadding(dp(context, 16), dp(context, 14), dp(context, 16), dp(context, 14));
                     InstagramPreferenceStyle.applyCardBackground(card, isFirst, isLast, true);
+
+                    if (showingAllFallback) {
+                        String sender = row[2];
+                        if (sender != null && !sender.isEmpty()) {
+                            TextView senderView = new TextView(context);
+                            senderView.setText("@" + sender);
+                            senderView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12.5f);
+                            senderView.setTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD));
+                            senderView.setTextColor(secondaryText);
+                            senderView.setPadding(0, 0, 0, dp(context, 2));
+                            card.addView(senderView);
+                        }
+                    }
 
                     TextView msgView = new TextView(context);
                     msgView.setText(formatDisplayText(content, type));
@@ -466,6 +495,58 @@ public final class ChatDeletedOverlay {
                 return "[Post]";
             default:
                 return content != null && !content.isEmpty() ? content : "[" + type + "]";
+        }
+    }
+
+    private static List<String[]> filterByHeaderHint(Activity activity, List<String[]> allDeleted) {
+        List<String[]> matched = new ArrayList<>();
+        if (allDeleted == null || allDeleted.isEmpty() || activity.getWindow() == null) {
+            return matched;
+        }
+        View decor = activity.getWindow().getDecorView();
+        List<String> headerTexts = new ArrayList<>();
+        collectTopHeaderTexts(decor, dp(activity, 120), headerTexts, 0);
+        if (headerTexts.isEmpty()) {
+            return matched;
+        }
+        for (String[] row : allDeleted) {
+            String sender = row[2];
+            if (sender == null || sender.trim().isEmpty()) {
+                continue;
+            }
+            String senderLower = sender.trim().toLowerCase(java.util.Locale.ROOT);
+            for (String h : headerTexts) {
+                if (h.equals(senderLower) || h.contains(senderLower)) {
+                    matched.add(row);
+                    break;
+                }
+            }
+        }
+        return matched;
+    }
+
+    private static void collectTopHeaderTexts(View view, int maxBottomY, List<String> out, int depth) {
+        if (view == null || view.getVisibility() != View.VISIBLE || depth > 20) {
+            return;
+        }
+        if (view instanceof TextView) {
+            Rect r = new Rect();
+            if (view.getGlobalVisibleRect(r) && r.bottom <= maxBottomY) {
+                CharSequence cs = ((TextView) view).getText();
+                if (cs != null) {
+                    String s = cs.toString().trim().toLowerCase(java.util.Locale.ROOT);
+                    if (!s.isEmpty()) {
+                        out.add(s);
+                    }
+                }
+            }
+            return;
+        }
+        if (view instanceof ViewGroup) {
+            ViewGroup g = (ViewGroup) view;
+            for (int i = 0; i < g.getChildCount(); i++) {
+                collectTopHeaderTexts(g.getChildAt(i), maxBottomY, out, depth + 1);
+            }
         }
     }
 
