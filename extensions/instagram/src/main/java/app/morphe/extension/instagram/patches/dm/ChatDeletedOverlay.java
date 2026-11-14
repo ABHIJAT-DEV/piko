@@ -20,12 +20,14 @@ import android.view.Gravity;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewParent;
+import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Method;
 import java.text.DateFormat;
 import java.util.Date;
 import java.util.List;
@@ -47,8 +49,26 @@ public final class ChatDeletedOverlay {
     private static final Handler MAIN_HANDLER = new Handler(Looper.getMainLooper());
     private static WeakReference<View> lastAnchor = new WeakReference<>(null);
     private static boolean dismissedForSession;
+    private static Method computeOffsetMethod;
+    private static Method computeRangeMethod;
+    private static Method computeExtentMethod;
+    private static boolean scrollMethodsResolved;
 
     private ChatDeletedOverlay() {
+    }
+
+    private static void ensureScrollMethods() {
+        if (scrollMethodsResolved) return;
+        scrollMethodsResolved = true;
+        try {
+            computeOffsetMethod = View.class.getDeclaredMethod("computeVerticalScrollOffset");
+            computeOffsetMethod.setAccessible(true);
+            computeRangeMethod = View.class.getDeclaredMethod("computeVerticalScrollRange");
+            computeRangeMethod.setAccessible(true);
+            computeExtentMethod = View.class.getDeclaredMethod("computeVerticalScrollExtent");
+            computeExtentMethod.setAccessible(true);
+        } catch (Throwable ignored) {
+        }
     }
 
     public static void attach(View anchor) {
@@ -204,6 +224,7 @@ public final class ChatDeletedOverlay {
                 return true;
             });
 
+            container.setClipChildren(true);
             if (container instanceof FrameLayout) {
                 FrameLayout.LayoutParams lp = new FrameLayout.LayoutParams(
                         FrameLayout.LayoutParams.WRAP_CONTENT,
@@ -222,8 +243,78 @@ public final class ChatDeletedOverlay {
             } else {
                 container.addView(wrapper);
             }
+
+            bindScrollSync(messageList, wrapper);
         } catch (Throwable t) {
             Logger.printException(() -> "ChatDeletedOverlay.render failed", t);
+        }
+    }
+
+    private static void bindScrollSync(View messageList, LinearLayout wrapper) {
+        ensureScrollMethods();
+        final int basePaddingBottom = messageList.getTag(0x7f0b9001) instanceof Integer
+                ? (Integer) messageList.getTag(0x7f0b9001)
+                : messageList.getPaddingBottom();
+        messageList.setTag(0x7f0b9001, basePaddingBottom);
+
+        wrapper.post(() -> {
+            if (!wrapper.isAttachedToWindow() || !messageList.isAttachedToWindow()) {
+                return;
+            }
+            int h = wrapper.getHeight();
+            if (h > 0 && messageList.getPaddingBottom() != basePaddingBottom + h) {
+                if (messageList instanceof ViewGroup) {
+                    ((ViewGroup) messageList).setClipToPadding(false);
+                }
+                messageList.setPadding(
+                        messageList.getPaddingLeft(),
+                        messageList.getPaddingTop(),
+                        messageList.getPaddingRight(),
+                        basePaddingBottom + h
+                );
+            }
+        });
+
+        final boolean[] reverseLayout = new boolean[]{true};
+        messageList.getViewTreeObserver().addOnPreDrawListener(new ViewTreeObserver.OnPreDrawListener() {
+            @Override
+            public boolean onPreDraw() {
+                if (!wrapper.isAttachedToWindow() || !messageList.isAttachedToWindow()) {
+                    messageList.getViewTreeObserver().removeOnPreDrawListener(this);
+                    return true;
+                }
+                int distanceFromBottom = computeDistanceFromBottom(messageList, reverseLayout);
+                if (wrapper.getTranslationY() != distanceFromBottom) {
+                    wrapper.setTranslationY(distanceFromBottom);
+                }
+                int maxTravel = wrapper.getHeight() + 24;
+                int targetVis = (maxTravel > 24 && distanceFromBottom > maxTravel) ? View.INVISIBLE : View.VISIBLE;
+                if (wrapper.getVisibility() != targetVis) {
+                    wrapper.setVisibility(targetVis);
+                }
+                return true;
+            }
+        });
+    }
+
+    private static int computeDistanceFromBottom(View list, boolean[] reverseLayout) {
+        try {
+            if (computeOffsetMethod == null || computeRangeMethod == null || computeExtentMethod == null) {
+                return 0;
+            }
+            int offset = (Integer) computeOffsetMethod.invoke(list);
+            int range = (Integer) computeRangeMethod.invoke(list);
+            int extent = (Integer) computeExtentMethod.invoke(list);
+            if (!list.canScrollVertically(1)) {
+                reverseLayout[0] = (offset <= 4);
+                return 0;
+            }
+            if (reverseLayout[0]) {
+                return Math.max(0, offset);
+            }
+            return Math.max(0, (range - extent) - offset);
+        } catch (Throwable ignored) {
+            return 0;
         }
     }
 
