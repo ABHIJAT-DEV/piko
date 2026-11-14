@@ -495,6 +495,20 @@ public class PikoMessageDb extends SQLiteOpenHelper {
         return result;
     }
 
+    public List<String[]> getDeletedMessagesForThread(String threadId) {
+        List<String[]> result = new ArrayList<>();
+        if (threadId == null || threadId.isEmpty()) return result;
+        SQLiteDatabase db = getReadableDatabase();
+        java.util.Map<String, String> directory = loadUsernameDirectory(db);
+        Cursor c = db.query(TABLE, null, "is_deleted = 1 AND thread_id = ?" + HAS_CONTENT,
+                new String[]{threadId}, null, null, "timestamp DESC");
+        while (c.moveToNext()) {
+            result.add(rowToStringArray(c, directory));
+        }
+        c.close();
+        return result;
+    }
+
     private java.util.Map<String, String> loadUsernameDirectory(SQLiteDatabase db) {
         java.util.Map<String, String> directory = new java.util.HashMap<>();
         Cursor c = db.query(DIR_TABLE, new String[]{"sender_id", "username"}, null, null, null, null, null);

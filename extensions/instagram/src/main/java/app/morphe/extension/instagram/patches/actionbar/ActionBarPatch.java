@@ -219,6 +219,7 @@ public class ActionBarPatch {
             if (viewGroup == null) {
                 return;
             }
+            app.morphe.extension.instagram.patches.dm.ChatDeletedOverlay.attach(viewGroup);
 
             Set<String> pref = Pref.chatActionBarButtons();
 

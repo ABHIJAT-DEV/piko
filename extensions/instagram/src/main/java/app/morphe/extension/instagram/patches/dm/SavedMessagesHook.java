@@ -31,6 +31,11 @@ public class SavedMessagesHook {
     static final String NOTIFICATION_CHANNEL_ID = "piko_deleted_messages";
 
     private static volatile String sMyUserId;
+    private static volatile String sActiveThreadId;
+
+    public static String getActiveThreadId() {
+        return sActiveThreadId;
+    }
     private static android.os.HandlerThread sWorkerThread;
     private static android.os.Handler sWorker;
 
@@ -228,6 +233,7 @@ public class SavedMessagesHook {
             String threadId = directItem.getThreadId();
             if (isBlank(threadId) && !isBlank(threadIdHint)) threadId = threadIdHint;
             if (threadId == null) threadId = "";
+            if (!threadId.isEmpty()) sActiveThreadId = threadId;
 
             PikoMessageDb db = PikoMessageDb.getInstance(PikoUtils.getContext());
             String senderUsername = resolveSenderUsername(
@@ -276,6 +282,7 @@ public class SavedMessagesHook {
 
     private static void markDeletedAndNotify(PikoMessageDb db, String messageId) {
         if (!db.markDeleted(messageId)) return;
+        ChatDeletedOverlay.refreshActive();
         // The notice shows who wrote what, so a hidden chat gets none.
         if (HiddenChats.shouldMuteDeletion(db.getThreadId(messageId))) return;
 
@@ -373,6 +380,8 @@ public class SavedMessagesHook {
             String messageId = db.resolveAndMergeMessageId(serverId, clientContext);
             if (messageId == null) return false;
             if (!shouldCaptureStored(db.getSenderId(messageId), myUserId())) return false;
+            String threadId = db.getThreadId(messageId);
+            if (!isBlank(threadId)) sActiveThreadId = threadId;
             getWorker().post(() -> {
                 try {
                     markDeletedAndNotify(db, messageId);
