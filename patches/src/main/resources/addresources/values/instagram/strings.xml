@@ -295,6 +295,8 @@
     <string name="piko_navigation_startup_tab_summary">Choose which tab opens when the app starts</string>
     <string name="piko_nav_bar_pixelmusic_style">PixelMusic floating pill navbar</string>
     <string name="piko_nav_bar_pixelmusic_style_desc">Style the bottom navigation bar as a floating pill toolbar (restart app to apply)</string>
+    <string name="piko_rounded_feed_media">Rounded feed posts</string>
+    <string name="piko_rounded_feed_media_desc">Round the corners of photos, carousels, and videos in the home feed</string>
     <string name="piko_navigation_tab_home">Home</string>
     <string name="piko_navigation_tab_reels">Reels</string>
     <string name="piko_navigation_tab_messages">Messages</string>

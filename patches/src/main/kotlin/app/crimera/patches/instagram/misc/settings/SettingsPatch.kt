@@ -146,6 +146,7 @@ val settingsPatch =
                 """
                     invoke-static {p0}, $ACTIVITY_SETTINGS_CLASS/HomeButtonShortcut;->attach(Landroid/app/Activity;)V
                     invoke-static {p0}, $PATCHES_DESCRIPTOR/navigation/PixelMusicNavBarStyle;->attach(Landroid/app/Activity;)V
+                    invoke-static {p0}, $PATCHES_DESCRIPTOR/feed/RoundedFeedStyle;->attach(Landroid/app/Activity;)V
                 """.trimIndent(),
             )
 

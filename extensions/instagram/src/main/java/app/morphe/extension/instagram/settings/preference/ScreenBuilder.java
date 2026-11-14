@@ -821,6 +821,13 @@ public class ScreenBuilder {
                     )
             );
         }
+        addPreference(
+                helper.switchPreference(
+                        str("piko_rounded_feed_media"),
+                        str("piko_rounded_feed_media_desc"),
+                        Settings.ROUNDED_FEED_MEDIA
+                )
+        );
         if (SettingsStatus.removeEmptyBottomSpace) {
             addPreference(
                     helper.switchPreference(
