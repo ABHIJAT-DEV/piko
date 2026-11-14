@@ -132,4 +132,11 @@ public class Settings {
 
     public static final StringSetting FILTER_STORY_MIN_STORY_ITEMS = new StringSetting("filter_story_min_story_items", "1", NOT_REQUIRED);
     public static final StringSetting FILTER_STORY_MAX_STORY_ITEMS = new StringSetting("filter_story_max_story_items", "9999", NOT_REQUIRED);
+
+    public static final BooleanSetting DEVICE_SPOOF = new BooleanSetting("device_spoof", false, REQUIRED);
+    public static final StringSetting DEVICE_SPOOF_PROFILE = new StringSetting("device_spoof_profile", "real", REQUIRED);
+    public static final StringSetting DEVICE_SPOOF_CUSTOM_MANUFACTURER = new StringSetting("device_spoof_custom_manufacturer", "", REQUIRED);
+    public static final StringSetting DEVICE_SPOOF_CUSTOM_BRAND = new StringSetting("device_spoof_custom_brand", "", REQUIRED);
+    public static final StringSetting DEVICE_SPOOF_CUSTOM_MODEL = new StringSetting("device_spoof_custom_model", "", REQUIRED);
+    public static final StringSetting DEVICE_SPOOF_CUSTOM_DEVICE = new StringSetting("device_spoof_custom_device", "", REQUIRED);
 }

@@ -830,6 +830,50 @@ public class ScreenBuilder {
                     )
             );
         }
+        if (SettingsStatus.deviceSpoof) {
+            addPreference(
+                    helper.switchPreference(
+                            str("piko_device_spoofing"),
+                            str("piko_device_spoofing_desc"),
+                            Settings.DEVICE_SPOOF
+                    )
+            );
+            addPreference(
+                    helper.listPreference(
+                            str("piko_device_spoof_profile"),
+                            str("piko_device_spoof_profile_desc"),
+                            Settings.DEVICE_SPOOF_PROFILE
+                    )
+            );
+            addPreference(
+                    helper.editTextPreference(
+                            str("piko_device_spoof_custom_manufacturer"),
+                            "",
+                            Settings.DEVICE_SPOOF_CUSTOM_MANUFACTURER
+                    )
+            );
+            addPreference(
+                    helper.editTextPreference(
+                            str("piko_device_spoof_custom_brand"),
+                            "",
+                            Settings.DEVICE_SPOOF_CUSTOM_BRAND
+                    )
+            );
+            addPreference(
+                    helper.editTextPreference(
+                            str("piko_device_spoof_custom_model"),
+                            "",
+                            Settings.DEVICE_SPOOF_CUSTOM_MODEL
+                    )
+            );
+            addPreference(
+                    helper.editTextPreference(
+                            str("piko_device_spoof_custom_device"),
+                            "",
+                            Settings.DEVICE_SPOOF_CUSTOM_DEVICE
+                    )
+            );
+        }
     }
 
     public void buildInstantsSection() {

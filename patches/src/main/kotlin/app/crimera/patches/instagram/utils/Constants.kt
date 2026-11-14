@@ -52,6 +52,7 @@ object Constants {
     const val PREF_CALL_DESCRIPTOR = "invoke-static {}, $PREF_DESCRIPTOR"
 
     const val PATCHES_DESCRIPTOR = "$INTEGRATIONS_PACKAGE/patches"
+    const val DEVICE_SPOOF_DESCRIPTOR = "$PATCHES_DESCRIPTOR/device/DeviceSpoof;"
     const val JSONPARSER_CHECK_DESCRIPTOR = """invoke-static {v%s}, $PATCHES_DESCRIPTOR/Block;->replaceJsonParserKey(Ljava/lang/String;)Ljava/lang/String;
         move-result-object v%s"""
 

@@ -178,6 +178,10 @@ public class SettingsStatus {
     public static boolean disableVideoAutoplay = false;
     public static void disableVideoAutoplay() { disableVideoAutoplay = true;    
     }
+    public static boolean deviceSpoof = false;
+    public static void deviceSpoof() {
+        deviceSpoof = true;
+    }
     public static boolean disableDoubleTapLike = false;
     public static void disableDoubleTapLike() {
         disableDoubleTapLike = true;
@@ -235,7 +239,7 @@ public class SettingsStatus {
     public static void moreOptionsOnPost() { moreOptionsOnPost = true; }
     public static boolean moreOptionsOnProfile = false;
     public static void moreOptionsOnProfile() { moreOptionsOnProfile = true; }
-    public static boolean miscSection() {return ( moreOptionsOnProfile || moreOptionsOnPost || changeLikeAnimation || removeEmptyBottomSpace || copyCommentButton || improveImageViewing || resumeReelsAfterScrolling || followBackIndicator || followListNonFollowerBadge || customFont);}
+    public static boolean miscSection() {return ( moreOptionsOnProfile || moreOptionsOnPost || changeLikeAnimation || removeEmptyBottomSpace || copyCommentButton || improveImageViewing || resumeReelsAfterScrolling || followBackIndicator || followListNonFollowerBadge || customFont || deviceSpoof);}
 
     //Font section.
     public static boolean customFont = false;
@@ -299,6 +303,7 @@ public class SettingsStatus {
         FLAGS.put(str("piko_more_profile_options"),SettingsStatus.moreOptionsOnProfile);
         FLAGS.put(str("piko_enable_more_options_on_post"),SettingsStatus.moreOptionsOnPost);
         FLAGS.put(str("piko_disable_video_autoplay"),SettingsStatus.disableVideoAutoplay);
+        FLAGS.put(str("piko_device_spoofing"),SettingsStatus.deviceSpoof);
         FLAGS.put(str("piko_remove_empty_bottom_space"),SettingsStatus.removeEmptyBottomSpace);
         FLAGS.put(str("piko_save_media_comment"),SettingsStatus.saveMediaCommentButton);
         FLAGS.put(str("piko_copy_comment"),SettingsStatus.copyCommentButton);
