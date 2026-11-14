@@ -6,12 +6,14 @@
 
 package app.morphe.extension.instagram.patches.device;
 
+import android.app.Application;
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.util.Log;
 
 import java.lang.reflect.Field;
-
-import app.morphe.extension.instagram.utils.Pref;
+import java.lang.reflect.Method;
 
 /**
  * Device spoofing: rewrites the device identity in {@link Build} at app
@@ -27,10 +29,25 @@ import app.morphe.extension.instagram.utils.Pref;
  *
  * <p>{@link Build.VERSION} is deliberately left real: faking it changes
  * API-level behaviour across the whole app. This class never throws.</p>
+ *
+ * <p>The settings are read straight from the {@code piko_settings}
+ * preferences file. The usual {@code Pref}/{@code SharedPref} path cannot
+ * be used here: it needs the extension context, which is only initialised
+ * later during startup, so at this point in {@code onCreate} it would
+ * silently return the defaults (spoofing off) and the spoof would never
+ * apply.</p>
  */
 public final class DeviceSpoof {
 
     private static final String TAG = "Piko";
+
+    private static final String PREFS_NAME = "piko_settings";
+    private static final String KEY_ENABLED = "device_spoof";
+    private static final String KEY_PROFILE = "device_spoof_profile";
+    private static final String KEY_CUSTOM_MANUFACTURER = "device_spoof_custom_manufacturer";
+    private static final String KEY_CUSTOM_BRAND = "device_spoof_custom_brand";
+    private static final String KEY_CUSTOM_MODEL = "device_spoof_custom_model";
+    private static final String KEY_CUSTOM_DEVICE = "device_spoof_custom_device";
 
     public static final String PROFILE_REAL = "real";
     public static final String PROFILE_CUSTOM = "custom";
@@ -59,8 +76,10 @@ public final class DeviceSpoof {
     public static synchronized void applyEarly() {
         if (applied) return;
         try {
-            if (!Pref.deviceSpoof()) return;
-            String[] profile = resolveProfile();
+            SharedPreferences prefs = startupPreferences();
+            if (prefs == null) return;
+            if (!readBoolean(prefs, KEY_ENABLED, false)) return;
+            String[] profile = resolveProfile(prefs);
             if (profile == null) return;
             applied = true;
 
@@ -89,16 +108,52 @@ public final class DeviceSpoof {
         }
     }
 
+    /**
+     * The app's own preferences, obtained without the extension framework:
+     * during Application.onCreate the Application object already exists in
+     * ActivityThread, even though piko's context holder is not set yet.
+     */
+    private static SharedPreferences startupPreferences() {
+        try {
+            Class<?> activityThread = Class.forName("android.app.ActivityThread");
+            Method currentApplication = activityThread.getMethod("currentApplication");
+            Application app = (Application) currentApplication.invoke(null);
+            if (app == null) return null;
+            return app.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE);
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private static boolean readBoolean(SharedPreferences prefs, String key, boolean defaultValue) {
+        try {
+            Object value = prefs.getAll().get(key);
+            if (value instanceof Boolean) return (Boolean) value;
+            if (value != null) return Boolean.parseBoolean(value.toString());
+        } catch (Throwable ignored) {
+        }
+        return defaultValue;
+    }
+
+    private static String readString(SharedPreferences prefs, String key, String defaultValue) {
+        try {
+            Object value = prefs.getAll().get(key);
+            if (value != null) return value.toString();
+        } catch (Throwable ignored) {
+        }
+        return defaultValue;
+    }
+
     /** Returns {manufacturer, brand, model, device} or null for no spoof. */
-    private static String[] resolveProfile() {
-        String id = Pref.deviceSpoofProfile();
+    private static String[] resolveProfile(SharedPreferences prefs) {
+        String id = readString(prefs, KEY_PROFILE, PROFILE_REAL);
         if (id == null || id.isEmpty() || PROFILE_REAL.equals(id)) return null;
         if (PROFILE_CUSTOM.equals(id)) {
-            String model = Pref.deviceSpoofCustomModel();
+            String model = readString(prefs, KEY_CUSTOM_MODEL, "");
             if (model == null || model.trim().isEmpty()) return null;
-            String manufacturer = orReal(Pref.deviceSpoofCustomManufacturer(), Build.MANUFACTURER);
-            String brand = orReal(Pref.deviceSpoofCustomBrand(), Build.BRAND);
-            String device = orReal(Pref.deviceSpoofCustomDevice(), Build.DEVICE);
+            String manufacturer = orReal(readString(prefs, KEY_CUSTOM_MANUFACTURER, ""), Build.MANUFACTURER);
+            String brand = orReal(readString(prefs, KEY_CUSTOM_BRAND, ""), Build.BRAND);
+            String device = orReal(readString(prefs, KEY_CUSTOM_DEVICE, ""), Build.DEVICE);
             return new String[]{manufacturer, brand, model.trim(), device};
         }
         for (String[] preset : PROFILES) {
