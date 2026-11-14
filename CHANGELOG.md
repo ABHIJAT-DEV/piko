@@ -1,3 +1,9 @@
+## [1.11.4](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.3...v1.11.4) (2026-11-14)
+
+### 🐛 Bug Fixes
+
+* **instagram:** match status bar strip color to rounded header on edge-to-edge ([3a07b38](https://github.com/ABHIJAT-DEV/piko/commit/3a07b386850ec93da52f4cb83f44edfb38863186))
+
 ## [1.11.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.2...v1.11.3) (2026-11-14)
 
 ### 🐛 Bug Fixes

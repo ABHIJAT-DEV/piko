@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-14T17:31:57",
-  "description": "## [1.11.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.2...v1.11.3) (2026-11-14)\n\n### 🐛 Bug Fixes\n\n* **instagram:** show saved deleted messages after app update/restart ([1fba549](https://github.com/ABHIJAT-DEV/piko/commit/1fba5490be3a789ff01b34220dceb965eff3a0cb))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.3/patches-1.11.3.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.3/patches-1.11.3.mpp.asc",
-  "version": "1.11.3"
+  "created_at": "2026-11-14T17:35:08",
+  "description": "## [1.11.4](https://github.com/ABHIJAT-DEV/piko/compare/v1.11.3...v1.11.4) (2026-11-14)\n\n### 🐛 Bug Fixes\n\n* **instagram:** match status bar strip color to rounded header on edge-to-edge ([3a07b38](https://github.com/ABHIJAT-DEV/piko/commit/3a07b386850ec93da52f4cb83f44edfb38863186))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.4/patches-1.11.4.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.11.4/patches-1.11.4.mpp.asc",
+  "version": "1.11.4"
 }
