@@ -38,6 +38,7 @@ import app.morphe.extension.instagram.constants.UI;
 import app.morphe.extension.instagram.settings.ActivityHook;
 import app.morphe.extension.instagram.settings.Settings;
 import app.morphe.extension.instagram.settings.preference.widgets.InstagramPreferenceStyle;
+import app.morphe.extension.instagram.theme.MaterialYouTheme;
 import app.morphe.extension.shared.Logger;
 import app.morphe.extension.shared.ResourceType;
 import app.morphe.extension.shared.ResourceUtils;
@@ -491,7 +492,7 @@ public final class PixelMusicNavBarStyle {
     }
 
     private static int resolvePrimaryColor(Context context) {
-        if (Build.VERSION.SDK_INT >= 31) {
+        if (Build.VERSION.SDK_INT >= 31 && MaterialYouTheme.isMaterialYouEnabled()) {
             try {
                 int resId = UI.isDarkMode()
                         ? android.R.color.system_accent1_200
