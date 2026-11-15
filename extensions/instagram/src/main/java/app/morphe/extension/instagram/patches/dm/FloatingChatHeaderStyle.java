@@ -104,11 +104,22 @@ public final class FloatingChatHeaderStyle {
 
     private static void update(Activity activity, View decor, HeaderState state) {
         if (!Boolean.TRUE.equals(SharedPref.getBooleanPref(Settings.FLOATING_CHAT_HEADER))) {
+            if (state.surgeryHeader != null && !state.surgeryHeader.isShown()) {
+                restoreThreadLayout(state);
+            }
             hideOverlay(state);
             return;
         }
         View composer = findDmComposer(decor);
         if (composer == null) {
+            // Not in a thread. If a previous thread's layout surgery is still
+            // applied and that thread is no longer on screen, undo it now —
+            // off-screen, where the relayout is invisible. (While the thread
+            // is still shown — e.g. mid-transition behind a profile — its
+            // layout is left exactly as the animation expects it.)
+            if (state.surgeryHeader != null && !state.surgeryHeader.isShown()) {
+                restoreThreadLayout(state);
+            }
             hideOverlay(state);
             return;
         }
@@ -124,6 +135,9 @@ public final class FloatingChatHeaderStyle {
         View searchRoot = findFragmentRoot(composer, decor);
         ViewGroup origHeader = findThreadHeader(activity, searchRoot);
         if (origHeader == null || !origHeader.isShown()) {
+            if (state.surgeryHeader != null && !state.surgeryHeader.isShown()) {
+                restoreThreadLayout(state);
+            }
             hideOverlay(state);
             return;
         }
@@ -248,6 +262,18 @@ public final class FloatingChatHeaderStyle {
             }
         }
 
+        // Re-assert the un-clipped state while in the thread. Clipping is
+        // switched back on at tap-time (see restoreClipping), so on return
+        // passes it has to be disabled again — a pure drawing-flag change,
+        // no layout involved.
+        if (!state.clippingDisabled && !state.surgeryUnclipped.isEmpty()) {
+            for (ViewGroup group : state.surgeryUnclipped) {
+                group.setClipChildren(false);
+                group.setClipToPadding(false);
+            }
+            state.clippingDisabled = true;
+        }
+
         // The parent/sibling surgery below rewrites layout params (negative top
         // margins so the list slides under the floating header). Doing that on
         // every update() forces fresh layout passes and fights the scroll.
@@ -300,7 +326,7 @@ public final class FloatingChatHeaderStyle {
                         && sibling.getTop() >= branch.getBottom() - maxDiv) {
                     sibling.setVisibility(View.GONE);
                 } else if (sibling.getHeight() > origHeader.getHeight() * 2) {
-                    disableClippingTree(sibling);
+                    disableClippingTree(sibling, state);
                     int branchH = branch.getHeight() > 0 ? branch.getHeight() : origHeader.getHeight();
                     ViewGroup.LayoutParams slp = sibling.getLayoutParams();
                     if (slp instanceof RelativeLayout.LayoutParams) {
@@ -334,6 +360,7 @@ public final class FloatingChatHeaderStyle {
             branch = parentGroup;
             parent = parentGroup.getParent();
         }
+        state.clippingDisabled = true;
     }
 
     private static void recordListSibling(HeaderState state, View sibling, int topMargin, int belowRule) {
@@ -380,6 +407,7 @@ public final class FloatingChatHeaderStyle {
             }
             state.surgeryUnclipped.clear();
             state.surgeryHeader = null;
+            state.clippingDisabled = false;
         } catch (Throwable ignored) {
         }
     }
@@ -477,7 +505,7 @@ public final class FloatingChatHeaderStyle {
         // original header's back button when one is found.
         backPill.setOnClickListener(v -> {
             hideOverlay(state);
-            restoreThreadLayout(state);
+            restoreClipping(state);
             activity.onBackPressed();
         });
 
@@ -649,7 +677,7 @@ public final class FloatingChatHeaderStyle {
                 final ImageView targetBack = origBack;
                 state.backPill.setOnClickListener(v -> {
                     hideOverlay(state);
-                    restoreThreadLayout(state);
+                    restoreClipping(state);
                     triggerClick(targetBack, activity);
                 });
             }
@@ -657,7 +685,7 @@ public final class FloatingChatHeaderStyle {
             state.lastBack = null;
             state.backPill.setOnClickListener(v -> {
                 hideOverlay(state);
-                restoreThreadLayout(state);
+                restoreClipping(state);
                 activity.onBackPressed();
             });
         }
@@ -674,7 +702,7 @@ public final class FloatingChatHeaderStyle {
                     // before the profile opens, so nothing of the chat is
                     // pulled up or painting outside its area behind it.
                     hideOverlay(state);
-                    restoreThreadLayout(state);
+                    restoreClipping(state);
                     triggerClick(targetAvatar, null);
                 });
             }
@@ -754,7 +782,7 @@ public final class FloatingChatHeaderStyle {
         }
     }
 
-    private static void disableClippingTree(View view) {
+    private static void disableClippingTree(View view, HeaderState state) {
         if (!(view instanceof ViewGroup)) {
             return;
         }
@@ -764,6 +792,9 @@ public final class FloatingChatHeaderStyle {
         }
         if (group.getClipToPadding()) {
             group.setClipToPadding(false);
+        }
+        if (!state.surgeryUnclipped.contains(group)) {
+            state.surgeryUnclipped.add(group);
         }
         for (int i = 0; i < group.getChildCount(); i++) {
             View child = group.getChildAt(i);
@@ -776,8 +807,34 @@ public final class FloatingChatHeaderStyle {
                 if (cg.getClipToPadding()) {
                     cg.setClipToPadding(false);
                 }
+                if (!state.surgeryUnclipped.contains(cg)) {
+                    state.surgeryUnclipped.add(cg);
+                }
             }
         }
+    }
+
+    /**
+     * Tap-time handoff: re-enable clipping ONLY. Instagram slides the thread
+     * out with a property animation (the whole app has zero
+     * FragmentTransaction.setCustomAnimations calls — the slide is IG's own
+     * view-animation machinery, which never relayouts). Restoring layout
+     * params at tap time (the v2 approach) forced a relayout of the exiting
+     * hierarchy in the same frame the slide started — that was the remaining
+     * jump/glitch. Clip flags are pure drawing state: flipping them costs no
+     * layout, and with clipping back on, the sliding messages stay inside
+     * the thread's bounds instead of painting over the incoming profile.
+     * The margins themselves are restored later, off-screen (see update()).
+     */
+    private static void restoreClipping(HeaderState state) {
+        if (!state.clippingDisabled) {
+            return;
+        }
+        for (ViewGroup group : state.surgeryUnclipped) {
+            group.setClipChildren(true);
+            group.setClipToPadding(true);
+        }
+        state.clippingDisabled = false;
     }
 
     private static void collectViews(View view, List<ImageView> icons, List<TextView> texts) {
@@ -849,6 +906,7 @@ public final class FloatingChatHeaderStyle {
         int savedTopMargin;
         int savedBelowRule;
         final java.util.List<ViewGroup> surgeryUnclipped = new ArrayList<>();
+        boolean clippingDisabled;
         ImageView lastBack;
         ImageView lastAvatar;
         ImageView lastAudio;
