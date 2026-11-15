@@ -127,8 +127,15 @@ public final class FloatingChatHeaderStyle {
             hideOverlay(state);
             return;
         }
+        // Identity check: the header must belong to the same fragment as the
+        // composer. If the search ever surfaces another screen's header,
+        // refuse to touch it.
+        if (findFragmentRoot(origHeader, decor) != searchRoot) {
+            hideOverlay(state);
+            return;
+        }
 
-        makeOriginalHeaderTransparentAndOverlapList(activity, origHeader, state);
+        makeOriginalHeaderTransparentAndOverlapList(activity, origHeader, state, searchRoot);
         ensureOverlayBuilt(activity, decor, state);
         syncOverlayContent(activity, origHeader, state);
     }
@@ -145,10 +152,13 @@ public final class FloatingChatHeaderStyle {
     }
 
     /**
-     * The fragment root for a view: climb parents until the next parent is the
-     * activity's content container (or the decor itself). Sibling fragments
-     * (profile, inbox) live under different roots, so searching only inside
-     * this subtree cannot leak onto them.
+     * The fragment root for a view: the highest ancestor that still belongs to
+     * the view's own fragment — i.e. the child of the fragment container.
+     * The container is the view whose parent is android.R.id.content; the
+     * fragment root is the container's child on this view's chain. Stopping
+     * one level higher (at the container) was the v1 mistake: the container
+     * is shared by every fragment in the activity, so searches and surgery
+     * scoped to it can still reach a sibling screen (the profile).
      */
     private static View findFragmentRoot(View view, View decor) {
         View current = view;
@@ -156,6 +166,16 @@ public final class FloatingChatHeaderStyle {
         while (parent instanceof ViewGroup && parent != decor) {
             ViewGroup parentGroup = (ViewGroup) parent;
             if (parentGroup.getId() == android.R.id.content) {
+                // Parent is the content view itself: current is the container
+                // (shallow hosting) — one more step down is not knowable, so
+                // keep current as the root.
+                break;
+            }
+            ViewParent grandparent = parentGroup.getParent();
+            if (grandparent instanceof ViewGroup
+                    && ((ViewGroup) grandparent).getId() == android.R.id.content) {
+                // parentGroup is the fragment container; current (its child on
+                // this chain) is the fragment's root view.
                 break;
             }
             current = parentGroup;
@@ -212,7 +232,8 @@ public final class FloatingChatHeaderStyle {
     private static void makeOriginalHeaderTransparentAndOverlapList(
             Activity activity,
             ViewGroup origHeader,
-            HeaderState state
+            HeaderState state,
+            View fragmentRoot
     ) {
         Drawable bg = origHeader.getBackground();
         if (bg != null && (!(bg instanceof ColorDrawable) || ((ColorDrawable) bg).getColor() != Color.TRANSPARENT)) {
@@ -243,13 +264,24 @@ public final class FloatingChatHeaderStyle {
         View branch = origHeader;
         ViewParent parent = origHeader.getParent();
 
-        for (int depth = 0; depth < 4 && parent instanceof ViewGroup; depth++) {
+        // Climb only INSIDE the thread fragment. The v1 code climbed up to 4
+        // parents unconditionally, disabling clipping on containers shared
+        // with other screens — with clipping off and the list pulled up by a
+        // negative margin, the chat's top messages painted outside the
+        // fragment and showed through/behind the next screen (the profile)
+        // while it opened. Every mutation is recorded so it can be reverted
+        // the moment the user leaves the chat (see restoreThreadLayout).
+        for (int depth = 0; depth < 4 && parent instanceof ViewGroup && branch != fragmentRoot; depth++) {
             ViewGroup parentGroup = (ViewGroup) parent;
             if (parentGroup.getClipChildren()) {
                 parentGroup.setClipChildren(false);
+                state.surgeryUnclipped.add(parentGroup);
             }
             if (parentGroup.getClipToPadding()) {
                 parentGroup.setClipToPadding(false);
+                if (!state.surgeryUnclipped.contains(parentGroup)) {
+                    state.surgeryUnclipped.add(parentGroup);
+                }
             }
 
             if (branch != origHeader && branch.getHeight() > 0 && branch.getHeight() <= maxHeaderH) {
@@ -274,6 +306,7 @@ public final class FloatingChatHeaderStyle {
                     if (slp instanceof RelativeLayout.LayoutParams) {
                         RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) slp;
                         if (rlp.getRule(RelativeLayout.BELOW) != 0) {
+                            recordListSibling(state, sibling, rlp.topMargin, rlp.getRule(RelativeLayout.BELOW));
                             rlp.removeRule(RelativeLayout.BELOW);
                             rlp.topMargin = 0;
                             sibling.setLayoutParams(rlp);
@@ -283,12 +316,14 @@ public final class FloatingChatHeaderStyle {
                             && slp instanceof ViewGroup.MarginLayoutParams) {
                         ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) slp;
                         if (mlp.topMargin != -branchH) {
+                            recordListSibling(state, sibling, mlp.topMargin, 0);
                             mlp.topMargin = -branchH;
                             sibling.setLayoutParams(mlp);
                         }
                     } else if (slp instanceof ViewGroup.MarginLayoutParams) {
                         ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) slp;
                         if (sibling.getTop() > dp(activity, 8) && mlp.topMargin >= 0) {
+                            recordListSibling(state, sibling, mlp.topMargin, 0);
                             mlp.topMargin = -branchH;
                             sibling.setLayoutParams(mlp);
                         }
@@ -298,6 +333,72 @@ public final class FloatingChatHeaderStyle {
 
             branch = parentGroup;
             parent = parentGroup.getParent();
+        }
+    }
+
+    private static void recordListSibling(HeaderState state, View sibling, int topMargin, int belowRule) {
+        if (state.surgeryListSibling == null) {
+            state.surgeryListSibling = sibling;
+            state.savedTopMargin = topMargin;
+            state.savedBelowRule = belowRule;
+        }
+    }
+
+    /**
+     * Undo the layout surgery: put the message list back at its stock position
+     * and re-enable clipping everywhere it was disabled. Called the moment the
+     * user leaves the chat (avatar tap to profile, or back), BEFORE the click
+     * is forwarded — so during the transition to the next screen the chat
+     * behind is in its stock layout: no pulled-up messages near the top and
+     * nothing painting outside the fragment. When the user returns to the
+     * chat, update() re-applies the surgery (surgeryHeader is cleared here).
+     */
+    private static void restoreThreadLayout(HeaderState state) {
+        try {
+            View sibling = state.surgeryListSibling;
+            if (sibling != null) {
+                ViewGroup.LayoutParams slp = sibling.getLayoutParams();
+                if (slp instanceof RelativeLayout.LayoutParams) {
+                    RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) slp;
+                    if (state.savedBelowRule != 0) {
+                        rlp.addRule(RelativeLayout.BELOW, state.savedBelowRule);
+                    }
+                    rlp.topMargin = state.savedTopMargin;
+                    sibling.setLayoutParams(rlp);
+                } else if (slp instanceof ViewGroup.MarginLayoutParams) {
+                    ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) slp;
+                    mlp.topMargin = state.savedTopMargin;
+                    sibling.setLayoutParams(mlp);
+                }
+                enableClippingTree(sibling);
+                state.surgeryListSibling = null;
+                state.savedBelowRule = 0;
+            }
+            for (ViewGroup group : state.surgeryUnclipped) {
+                group.setClipChildren(true);
+                group.setClipToPadding(true);
+            }
+            state.surgeryUnclipped.clear();
+            state.surgeryHeader = null;
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private static void enableClippingTree(View view) {
+        if (!(view instanceof ViewGroup)) {
+            return;
+        }
+        ViewGroup group = (ViewGroup) view;
+        group.setClipChildren(true);
+        group.setClipToPadding(true);
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof ViewGroup && (child.getClass().getName().contains("RecyclerView")
+                    || child.getClass().getName().contains("SwipeRefresh"))) {
+                ViewGroup cg = (ViewGroup) child;
+                cg.setClipChildren(true);
+                cg.setClipToPadding(true);
+            }
         }
     }
 
@@ -376,6 +477,7 @@ public final class FloatingChatHeaderStyle {
         // original header's back button when one is found.
         backPill.setOnClickListener(v -> {
             hideOverlay(state);
+            restoreThreadLayout(state);
             activity.onBackPressed();
         });
 
@@ -547,6 +649,7 @@ public final class FloatingChatHeaderStyle {
                 final ImageView targetBack = origBack;
                 state.backPill.setOnClickListener(v -> {
                     hideOverlay(state);
+                    restoreThreadLayout(state);
                     triggerClick(targetBack, activity);
                 });
             }
@@ -554,6 +657,7 @@ public final class FloatingChatHeaderStyle {
             state.lastBack = null;
             state.backPill.setOnClickListener(v -> {
                 hideOverlay(state);
+                restoreThreadLayout(state);
                 activity.onBackPressed();
             });
         }
@@ -566,9 +670,11 @@ public final class FloatingChatHeaderStyle {
                 state.lastAvatar = origAvatar;
                 final ImageView targetAvatar = origAvatar;
                 state.centerWrap.setOnClickListener(v -> {
-                    // Hide our overlay before the profile opens so it never
-                    // sits on top of the profile during the transition.
+                    // Hide our overlay and put the chat layout back to stock
+                    // before the profile opens, so nothing of the chat is
+                    // pulled up or painting outside its area behind it.
                     hideOverlay(state);
+                    restoreThreadLayout(state);
                     triggerClick(targetAvatar, null);
                 });
             }
@@ -739,6 +845,10 @@ public final class FloatingChatHeaderStyle {
         // layout surgery, and which original views the overlay currently
         // mirrors (so repeated update() passes don't redo the work).
         View surgeryHeader;
+        View surgeryListSibling;
+        int savedTopMargin;
+        int savedBelowRule;
+        final java.util.List<ViewGroup> surgeryUnclipped = new ArrayList<>();
         ImageView lastBack;
         ImageView lastAvatar;
         ImageView lastAudio;
