@@ -1,3 +1,9 @@
+## [1.13.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.2...v1.13.3) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** match LX/06hr;->A02 and LX/06mn;->A06 directly for Hide online status ([4a98ccc](https://github.com/ABHIJAT-DEV/piko/commit/4a98ccc6b352a89790c39a343163a568fe3141b7))
+
 ## [1.13.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.1...v1.13.2) (2026-11-15)
 
 ### 🐛 Bug Fixes

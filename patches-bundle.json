@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-15T03:45:46",
-  "description": "## [1.13.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.1...v1.13.2) (2026-11-15)\n\n### 🐛 Bug Fixes\n\n* **instagram:** add DGW presence kill-switch and go-online block to Hide online status ([9cd6753](https://github.com/ABHIJAT-DEV/piko/commit/9cd67533da6c1cc08d6ffdea37891fcc20e78407))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.2/patches-1.13.2.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.2/patches-1.13.2.mpp.asc",
-  "version": "1.13.2"
+  "created_at": "2026-11-15T04:06:40",
+  "description": "## [1.13.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.2...v1.13.3) (2026-11-15)\n\n### 🐛 Bug Fixes\n\n* **instagram:** match LX/06hr;->A02 and LX/06mn;->A06 directly for Hide online status ([4a98ccc](https://github.com/ABHIJAT-DEV/piko/commit/4a98ccc6b352a89790c39a343163a568fe3141b7))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.3/patches-1.13.3.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.3/patches-1.13.3.mpp.asc",
+  "version": "1.13.3"
 }
