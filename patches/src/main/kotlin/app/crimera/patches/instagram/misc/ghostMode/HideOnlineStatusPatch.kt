@@ -10,7 +10,7 @@ import app.crimera.patches.instagram.misc.actionBar.chatActionBarButton.chatActi
 import app.crimera.patches.instagram.misc.actionBar.inboxActionBarButton.inboxActionBarButtonPatch
 import app.crimera.patches.instagram.misc.settings.settingsPatch
 import app.crimera.patches.instagram.utils.Constants.COMPATIBILITY_INSTAGRAM
-import app.crimera.patches.instagram.utils.Constants.PREF_CALL_DESCRIPTOR
+import app.crimera.patches.instagram.utils.Constants.PREF_DESCRIPTOR
 import app.crimera.patches.instagram.utils.enableSettings
 import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
@@ -59,7 +59,7 @@ val hideOnlineStatusPatch =
                 match.method.addInstructions(
                     iget.index + 1,
                     """
-                    $PREF_CALL_DESCRIPTOR->resolveAppState(I)I
+                    invoke-static {v$stateRegister}, $PREF_DESCRIPTOR->resolveAppState(I)I
                     move-result v$stateRegister
                     """.trimIndent(),
                 )
