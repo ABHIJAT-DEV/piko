@@ -17,8 +17,10 @@ import app.morphe.patcher.Fingerprint
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructions
 import app.morphe.patcher.extensions.InstructionExtensions.addInstructionsWithLabels
 import app.morphe.patcher.extensions.InstructionExtensions.getInstruction
+import app.morphe.patcher.literal
 import app.morphe.patcher.opcode
 import app.morphe.patcher.patch.patch
+import app.morphe.patcher.string
 import app.morphe.patcher.util.findFreeRegister
 import app.morphe.patcher.util.smali.ExternalLabel
 import com.android.tools.smali.dexlib2.Opcode
@@ -63,6 +65,23 @@ internal object RealtimeUpdateAppStateInternalFingerprint : Fingerprint(
     name = "updateAppStateInternal",
     returnType = "V",
     parameters = listOf("Z"),
+)
+
+internal object PresenceKillSwitchFingerprint : Fingerprint(
+    returnType = "Z",
+    parameters = listOf("Lcom/instagram/common/session/UserSession;"),
+    filters = listOf(
+        literal(36325433230445512L),
+    ),
+)
+
+internal object DgwPresencePublishFingerprint : Fingerprint(
+    returnType = "V",
+    parameters = listOf("L"),
+    filters = listOf(
+        string("request_id: "),
+        string(", presence_status:"),
+    ),
 )
 
 @Suppress("unused")
@@ -123,6 +142,37 @@ val hideOnlineStatusPatch =
                         """.trimIndent(),
                     )
                 }
+            }
+
+            // 4. Force the DGW/MQTT presence kill-switch MobileConfig check to return true.
+            PresenceKillSwitchFingerprint.matchOrNull()?.method?.apply {
+                val freeReg = findFreeRegister(0, parameterRegisterStart(this))
+                addInstructionsWithLabels(
+                    0,
+                    """
+                    invoke-static {}, $PREF_DESCRIPTOR->hideOnlineStatus()Z
+                    move-result v$freeReg
+                    if-eqz v$freeReg, :piko_allow_presence_mc
+                    const/4 v$freeReg, 0x1
+                    return v$freeReg
+                    """.trimIndent(),
+                    ExternalLabel("piko_allow_presence_mc", getInstruction(0)),
+                )
+            }
+
+            // 5. Belt-and-braces: short-circuit the DGW presence publisher method directly.
+            DgwPresencePublishFingerprint.matchOrNull()?.method?.apply {
+                val freeReg = findFreeRegister(0, parameterRegisterStart(this))
+                addInstructionsWithLabels(
+                    0,
+                    """
+                    invoke-static {}, $PREF_DESCRIPTOR->hideOnlineStatus()Z
+                    move-result v$freeReg
+                    if-eqz v$freeReg, :piko_allow_dgw_publish
+                    return-void
+                    """.trimIndent(),
+                    ExternalLabel("piko_allow_dgw_publish", getInstruction(0)),
+                )
             }
 
             enableSettings("hideOnlineStatus")
