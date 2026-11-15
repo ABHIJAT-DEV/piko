@@ -111,6 +111,14 @@ public class Pref {
         return SharedPref.getBooleanPref(Settings.DISABLE_TYPING_STATUS) || Pref.getTurnOnAllGhostModes();
     }
 
+    public static boolean hideOnlineStatus() {
+        return (SharedPref.getBooleanPref(Settings.HIDE_ONLINE_STATUS) && SettingsStatus.hideOnlineStatus) || Pref.getTurnOnAllGhostModes();
+    }
+
+    public static int resolveAppState(int state) {
+        return hideOnlineStatus() ? 1 : state;
+    }
+
     public static boolean enableMarkChatAsReadOption() {
         return SharedPref.getBooleanPref(Settings.ENABLE_MARK_CHAT_AS_READ) && SettingsStatus.markChatAsRead;
     }

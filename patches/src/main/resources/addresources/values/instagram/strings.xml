@@ -46,6 +46,8 @@
     <string name="piko_view_stories_anonymously">View stories anonymously</string>
     <string name="piko_view_live_anonymously">View live anonymously</string>
     <string name="piko_disable_typing_status">Disable typing status</string>
+    <string name="piko_hide_online_status">Hide online status</string>
+    <string name="piko_hide_online_status_desc">Always report your app state as backgrounded so others cannot see when you are active</string>
     <string name="piko_disable_screenshot_detection">Disable screenshot detection</string>
     <string name="piko_view_dm_anonymously">View direct messages anonymously</string>
     <string name="piko_mark_as_read_after_reply">Mark as read after reply</string>

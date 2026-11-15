@@ -53,6 +53,10 @@ public class SettingsStatus {
     public static void disableTypingStatus() {
         disableTypingStatus = true;
     }
+    public static boolean hideOnlineStatus = false;
+    public static void hideOnlineStatus() {
+        hideOnlineStatus = true;
+    }
     public static boolean viewDmAnonymously = false;
     public static void viewDmAnonymously() {
         viewDmAnonymously = true;
@@ -66,7 +70,7 @@ public class SettingsStatus {
         saveDeletedMessages = true;
     }
     public static boolean ghostSection() {
-        return (viewStoriesAnonymously || viewLiveAnonymously || disableScreenshotDetection || disableTypingStatus || viewDmAnonymously || markAsReadAfterReply);
+        return (viewStoriesAnonymously || viewLiveAnonymously || disableScreenshotDetection || disableTypingStatus || hideOnlineStatus || viewDmAnonymously || markAsReadAfterReply);
     }
 
     //DM section
@@ -344,6 +348,7 @@ public class SettingsStatus {
         FLAGS.put(str("piko_save_deleted_messages"),SettingsStatus.saveDeletedMessages);
         FLAGS.put(str("piko_disable_screenshot_detection"),SettingsStatus.disableScreenshotDetection);
         FLAGS.put(str("piko_disable_typing_status"),SettingsStatus.disableTypingStatus);
+        FLAGS.put(str("piko_hide_online_status"),SettingsStatus.hideOnlineStatus);
         FLAGS.put(str("piko_view_live_anonymously"),SettingsStatus.viewLiveAnonymously);
         FLAGS.put(str("piko_view_stories_anonymously"),SettingsStatus.viewStoriesAnonymously);
         FLAGS.put(str("piko_instants_title"),SettingsStatus.instantsDownload);
