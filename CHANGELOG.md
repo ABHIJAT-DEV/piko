@@ -1,3 +1,9 @@
+## [1.14.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.3...v1.14.0) (2026-11-15)
+
+### ✨ New Features
+
+* **instagram:** render voice messages as playable pills and dismiss deleted sheet on outside tap ([13034fb](https://github.com/ABHIJAT-DEV/piko/commit/13034fb1ff14fe92bb1bae3027991894d102e62b))
+
 ## [1.13.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.2...v1.13.3) (2026-11-15)
 
 ### 🐛 Bug Fixes

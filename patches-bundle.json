@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-15T04:06:40",
-  "description": "## [1.13.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.2...v1.13.3) (2026-11-15)\n\n### 🐛 Bug Fixes\n\n* **instagram:** match LX/06hr;->A02 and LX/06mn;->A06 directly for Hide online status ([4a98ccc](https://github.com/ABHIJAT-DEV/piko/commit/4a98ccc6b352a89790c39a343163a568fe3141b7))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.3/patches-1.13.3.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.3/patches-1.13.3.mpp.asc",
-  "version": "1.13.3"
+  "created_at": "2026-11-15T04:48:30",
+  "description": "## [1.14.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.3...v1.14.0) (2026-11-15)\n\n### ✨ New Features\n\n* **instagram:** render voice messages as playable pills and dismiss deleted sheet on outside tap ([13034fb](https://github.com/ABHIJAT-DEV/piko/commit/13034fb1ff14fe92bb1bae3027991894d102e62b))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.14.0/patches-1.14.0.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.14.0/patches-1.14.0.mpp.asc",
+  "version": "1.14.0"
 }
