@@ -119,6 +119,10 @@ public class Pref {
         return hideOnlineStatus() ? 1 : state;
     }
 
+    public static boolean resolveForegroundBool(boolean isForegrounded) {
+        return !hideOnlineStatus() && isForegrounded;
+    }
+
     public static boolean enableMarkChatAsReadOption() {
         return SharedPref.getBooleanPref(Settings.ENABLE_MARK_CHAT_AS_READ) && SettingsStatus.markChatAsRead;
     }
