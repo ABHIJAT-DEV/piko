@@ -271,13 +271,24 @@ public final class SettingsActivity {
             ));
 
             InstagramPreferenceStyle.applySystemBarStyle(activity);
+            int headerColor = InstagramPreferenceStyle.surfaceContainerHighColor();
+            activity.getWindow().setStatusBarColor(headerColor);
 
             // ---------- Toolbar ----------
             toolbar = new LinearLayout(activity);
             toolbar.setOrientation(LinearLayout.HORIZONTAL);
             toolbar.setGravity(android.view.Gravity.CENTER_VERTICAL);
             toolbar.setLayoutDirection(View.LAYOUT_DIRECTION_LOCALE);
-            toolbar.setBackgroundColor(InstagramPreferenceStyle.backgroundColor());
+            android.graphics.drawable.GradientDrawable toolbarBg = new android.graphics.drawable.GradientDrawable();
+            toolbarBg.setShape(android.graphics.drawable.GradientDrawable.RECTANGLE);
+            toolbarBg.setColor(headerColor);
+            float headerRadius = InstagramPreferenceStyle.dp(activity, 28);
+            toolbarBg.setCornerRadii(new float[]{
+                    0f, 0f, 0f, 0f,
+                    headerRadius, headerRadius, headerRadius, headerRadius
+            });
+            toolbar.setBackground(toolbarBg);
+            toolbar.setClipToOutline(true);
 
             int toolbarPadding = InstagramPreferenceStyle.dp(activity, 15);
             toolbar.setPadding(toolbarPadding, InstagramPreferenceStyle.dp(activity, 10), toolbarPadding, InstagramPreferenceStyle.dp(activity, 8));
