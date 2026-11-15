@@ -1,3 +1,9 @@
+## [1.15.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.2...v1.15.3) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** stop floating DM header leaking onto profile and janking chat scroll ([6da5601](https://github.com/ABHIJAT-DEV/piko/commit/6da560170264d883aa03feec5bb13b3ea53f2cb8))
+
 ## [1.15.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.1...v1.15.2) (2026-11-15)
 
 ### 🐛 Bug Fixes

@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-15T05:17:45",
-  "description": "## [1.15.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.1...v1.15.2) (2026-11-15)\n\n### 🐛 Bug Fixes\n\n* **instagram:** remove sharp top cutoff behind floating DM header and enlarge avatar ([a0dccca](https://github.com/ABHIJAT-DEV/piko/commit/a0dcccae60eae49dff246cee815878438b22262a))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.15.2/patches-1.15.2.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.15.2/patches-1.15.2.mpp.asc",
-  "version": "1.15.2"
+  "created_at": "2026-11-15T05:32:18",
+  "description": "## [1.15.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.2...v1.15.3) (2026-11-15)\n\n### 🐛 Bug Fixes\n\n* **instagram:** stop floating DM header leaking onto profile and janking chat scroll ([6da5601](https://github.com/ABHIJAT-DEV/piko/commit/6da560170264d883aa03feec5bb13b3ea53f2cb8))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.15.3/patches-1.15.3.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.15.3/patches-1.15.3.mpp.asc",
+  "version": "1.15.3"
 }
