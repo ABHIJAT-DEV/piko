@@ -1,3 +1,9 @@
+## [1.15.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.1...v1.15.2) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** remove sharp top cutoff behind floating DM header and enlarge avatar ([a0dccca](https://github.com/ABHIJAT-DEV/piko/commit/a0dcccae60eae49dff246cee815878438b22262a))
+
 ## [1.15.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.0...v1.15.1) (2026-11-15)
 
 ### 🐛 Bug Fixes
