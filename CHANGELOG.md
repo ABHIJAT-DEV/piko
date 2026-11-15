@@ -1,3 +1,9 @@
+## [1.15.5](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.4...v1.15.5) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** clip-only handoff at tap so IG's profile slide animation runs without relayout ([d87a089](https://github.com/ABHIJAT-DEV/piko/commit/d87a0894de0e85abed531f6eb8279dbdf3238d40))
+
 ## [1.15.4](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.3...v1.15.4) (2026-11-15)
 
 ### 🐛 Bug Fixes
