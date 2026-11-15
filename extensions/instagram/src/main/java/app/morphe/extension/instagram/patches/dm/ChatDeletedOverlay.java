@@ -28,7 +28,9 @@ import android.graphics.Typeface;
 import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
+import android.media.AudioAttributes;
 import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
@@ -443,8 +445,24 @@ public final class ChatDeletedOverlay {
                     }
 
                     boolean hasMediaUrl = isRenderableMediaUrl(content);
-                    if (hasMediaUrl) {
-                        boolean isVideo = isVideoMedia(content, type);
+                    boolean isVoice = hasMediaUrl && isVoiceMedia(content, type);
+                    boolean isVideo = hasMediaUrl && !isVoice && isVideoMedia(content, type);
+                    if (isVoice) {
+                        View voicePill = buildVoicePill(activity, state, content, dark, () -> {
+                            if (state.selectionMode) {
+                                toggleSelection(state, msgId, renderHolder[0]);
+                            }
+                        }, v -> {
+                            startSelection(state, msgId, renderHolder[0]);
+                            return true;
+                        });
+                        LinearLayout.LayoutParams vpParams = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.MATCH_PARENT,
+                                LinearLayout.LayoutParams.WRAP_CONTENT
+                        );
+                        vpParams.bottomMargin = dp(activity, 6);
+                        card.addView(voicePill, vpParams);
+                    } else if (hasMediaUrl) {
                         View mediaPreview = buildMediaPreview(activity, content, isVideo, dark, () -> {
                             if (state.selectionMode) {
                                 toggleSelection(state, msgId, renderHolder[0]);
@@ -504,8 +522,10 @@ public final class ChatDeletedOverlay {
                     card.setOnClickListener(v -> {
                         if (state.selectionMode) {
                             toggleSelection(state, msgId, renderHolder[0]);
+                        } else if (isVoice) {
+                            // Voice pill handles its own play/pause tap.
                         } else if (hasMediaUrl) {
-                            if (isVideoMedia(content, type)) {
+                            if (isVideo) {
                                 openVideoPreview(activity, content);
                             } else {
                                 openImagePreview(activity, content);
@@ -594,6 +614,9 @@ public final class ChatDeletedOverlay {
                 }
             });
 
+            dialog.setCancelable(true);
+            dialog.setCanceledOnTouchOutside(true);
+            dialog.setOnDismissListener(d -> stopVoicePlayback(state));
             dialog.setContentView(sheet);
             Window window = dialog.getWindow();
             if (window != null) {
@@ -702,11 +725,233 @@ public final class ChatDeletedOverlay {
                 && !lower.contains("instagram.com/tv/");
     }
 
+    private static boolean isVoiceMedia(String url, String type) {
+        if ("voice_media".equals(type) || "audio".equals(type)) {
+            return true;
+        }
+        if (url == null) {
+            return false;
+        }
+        String lower = url.toLowerCase(Locale.ROOT);
+        return lower.matches(".*\\.(m4a|aac|mp3|ogg|opus|wav)(\\?.*)?$");
+    }
+
     private static boolean isVideoMedia(String url, String type) {
+        if (isVoiceMedia(url, type)) {
+            return false;
+        }
         if ("video".equals(type) || "reel_share".equals(type)) {
             return true;
         }
         return MediaUrls.isVideo(url);
+    }
+
+    private static View buildVoicePill(
+            Activity activity,
+            SheetState state,
+            String url,
+            boolean dark,
+            Runnable onSelectionTap,
+            View.OnLongClickListener onLongClick
+    ) {
+        int pillBg = dark ? 0xFF2B2D33 : 0xFFEBECEF;
+        int accent = 0xFF6C47FF;
+        int activeWaveColor = accent;
+        int inactiveWaveColor = dark ? 0x55FFFFFF : 0x44000000;
+        int timerColor = dark ? 0xFFE3E5EA : 0xFF1C1E21;
+
+        LinearLayout pill = new LinearLayout(activity);
+        pill.setOrientation(LinearLayout.HORIZONTAL);
+        pill.setGravity(Gravity.CENTER_VERTICAL);
+        pill.setPadding(dp(activity, 10), dp(activity, 8), dp(activity, 14), dp(activity, 8));
+        GradientDrawable pillDrawable = new GradientDrawable();
+        pillDrawable.setShape(GradientDrawable.RECTANGLE);
+        pillDrawable.setCornerRadius(dp(activity, 24));
+        pillDrawable.setColor(pillBg);
+        pill.setBackground(pillDrawable);
+
+        FrameLayout playBtn = new FrameLayout(activity);
+        GradientDrawable circle = new GradientDrawable();
+        circle.setShape(GradientDrawable.OVAL);
+        circle.setColor(accent);
+        playBtn.setBackground(circle);
+
+        final TextView playIcon = new TextView(activity);
+        playIcon.setText("\u25B6");
+        playIcon.setTextColor(Color.WHITE);
+        playIcon.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        playIcon.setGravity(Gravity.CENTER);
+        playBtn.addView(playIcon, new FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+        ));
+        LinearLayout.LayoutParams pbParams = new LinearLayout.LayoutParams(dp(activity, 32), dp(activity, 32));
+        pbParams.setMarginEnd(dp(activity, 10));
+        pill.addView(playBtn, pbParams);
+
+        final WaveformView waveform = new WaveformView(activity, activeWaveColor, inactiveWaveColor);
+        LinearLayout.LayoutParams wfParams = new LinearLayout.LayoutParams(0, dp(activity, 26), 1f);
+        wfParams.setMarginEnd(dp(activity, 10));
+        pill.addView(waveform, wfParams);
+
+        final TextView timerView = new TextView(activity);
+        timerView.setText("0:00");
+        timerView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12);
+        timerView.setTypeface(Typeface.create("sans-serif-medium", Typeface.NORMAL));
+        timerView.setTextColor(timerColor);
+        pill.addView(timerView);
+
+        View.OnClickListener togglePlay = v -> {
+            if (state.selectionMode) {
+                onSelectionTap.run();
+                return;
+            }
+            toggleVoicePlayback(activity, state, url, playIcon, waveform, timerView);
+        };
+        pill.setOnClickListener(togglePlay);
+        playBtn.setOnClickListener(togglePlay);
+        pill.setOnLongClickListener(onLongClick);
+        playBtn.setOnLongClickListener(onLongClick);
+        return pill;
+    }
+
+    private static void toggleVoicePlayback(
+            Activity activity,
+            SheetState state,
+            String url,
+            TextView playIcon,
+            WaveformView waveform,
+            TextView timerView
+    ) {
+        if (url.equals(state.playingUrl) && state.mediaPlayer != null) {
+            try {
+                if (state.mediaPlayer.isPlaying()) {
+                    state.mediaPlayer.pause();
+                    playIcon.setText("\u25B6");
+                    return;
+                } else {
+                    state.mediaPlayer.start();
+                    playIcon.setText("\u275A\u275A");
+                    scheduleVoiceProgress(state);
+                    return;
+                }
+            } catch (Throwable ignored) {
+            }
+        }
+
+        stopVoicePlayback(state);
+        state.playingUrl = url;
+        state.activePlayIcon = playIcon;
+        state.activeWaveform = waveform;
+        state.activeTimerView = timerView;
+        playIcon.setText("\u2026");
+
+        try {
+            MediaPlayer mp = new MediaPlayer();
+            mp.setAudioAttributes(new AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .build());
+            mp.setDataSource(url);
+            mp.setOnPreparedListener(player -> {
+                if (state.mediaPlayer != player) {
+                    player.release();
+                    return;
+                }
+                player.start();
+                playIcon.setText("\u275A\u275A");
+                scheduleVoiceProgress(state);
+            });
+            mp.setOnCompletionListener(player -> {
+                playIcon.setText("\u25B6");
+                waveform.setProgress(0f);
+                int durMs = 0;
+                try {
+                    durMs = player.getDuration();
+                } catch (Throwable ignored) {
+                }
+                timerView.setText(formatDuration(durMs > 0 ? durMs : 0));
+            });
+            mp.setOnErrorListener((player, what, extra) -> {
+                stopVoicePlayback(state);
+                try {
+                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    i.setDataAndType(Uri.parse(url), "audio/*");
+                    activity.startActivity(Intent.createChooser(i, null));
+                } catch (Throwable ignored) {
+                }
+                return true;
+            });
+            state.mediaPlayer = mp;
+            mp.prepareAsync();
+        } catch (Throwable ignored) {
+            stopVoicePlayback(state);
+        }
+    }
+
+    private static void scheduleVoiceProgress(SheetState state) {
+        if (state.progressTick != null) {
+            MAIN_HANDLER.removeCallbacks(state.progressTick);
+        }
+        state.progressTick = new Runnable() {
+            @Override
+            public void run() {
+                MediaPlayer mp = state.mediaPlayer;
+                if (mp == null) {
+                    return;
+                }
+                try {
+                    if (mp.isPlaying()) {
+                        int pos = mp.getCurrentPosition();
+                        int dur = mp.getDuration();
+                        if (state.activeWaveform != null && dur > 0) {
+                            state.activeWaveform.setProgress((float) pos / (float) dur);
+                        }
+                        if (state.activeTimerView != null) {
+                            state.activeTimerView.setText(formatDuration(pos));
+                        }
+                        MAIN_HANDLER.postDelayed(this, 100L);
+                    }
+                } catch (Throwable ignored) {
+                }
+            }
+        };
+        MAIN_HANDLER.post(state.progressTick);
+    }
+
+    private static void stopVoicePlayback(SheetState state) {
+        if (state.progressTick != null) {
+            MAIN_HANDLER.removeCallbacks(state.progressTick);
+            state.progressTick = null;
+        }
+        if (state.mediaPlayer != null) {
+            try {
+                state.mediaPlayer.stop();
+            } catch (Throwable ignored) {
+            }
+            try {
+                state.mediaPlayer.release();
+            } catch (Throwable ignored) {
+            }
+            state.mediaPlayer = null;
+        }
+        if (state.activePlayIcon != null) {
+            state.activePlayIcon.setText("\u25B6");
+        }
+        if (state.activeWaveform != null) {
+            state.activeWaveform.setProgress(0f);
+        }
+        state.playingUrl = null;
+        state.activePlayIcon = null;
+        state.activeWaveform = null;
+        state.activeTimerView = null;
+    }
+
+    private static String formatDuration(int ms) {
+        int totalSec = Math.max(0, ms / 1000);
+        int min = totalSec / 60;
+        int sec = totalSec % 60;
+        return String.format(Locale.US, "%d:%02d", min, sec);
     }
 
     private static View buildMediaPreview(
@@ -981,11 +1226,69 @@ public final class ChatDeletedOverlay {
         );
     }
 
+    private static final class WaveformView extends View {
+        private static final float[] BARS = {
+                0.35f, 0.65f, 0.90f, 0.50f, 0.75f, 1.00f, 0.60f, 0.40f,
+                0.85f, 0.55f, 0.70f, 0.95f, 0.45f, 0.65f, 0.80f, 0.50f,
+                0.90f, 0.60f, 0.40f, 0.75f, 0.55f, 0.35f
+        };
+        private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        private final int activeColor;
+        private final int inactiveColor;
+        private float progress;
+
+        WaveformView(Context context, int activeColor, int inactiveColor) {
+            super(context);
+            this.activeColor = activeColor;
+            this.inactiveColor = inactiveColor;
+        }
+
+        void setProgress(float progress) {
+            this.progress = Math.max(0f, Math.min(1f, progress));
+            invalidate();
+        }
+
+        @Override
+        protected void onDraw(Canvas canvas) {
+            int w = getWidth();
+            int h = getHeight();
+            if (w <= 0 || h <= 0) {
+                return;
+            }
+            int count = BARS.length;
+            float step = (float) w / (float) count;
+            float barW = Math.max(2f, step * 0.45f);
+            float radius = barW / 2f;
+            float centerY = h / 2f;
+            for (int i = 0; i < count; i++) {
+                float frac = (float) i / (float) count;
+                paint.setColor(frac < progress ? activeColor : inactiveColor);
+                float barH = Math.max(barW, h * 0.85f * BARS[i]);
+                float left = i * step + (step - barW) / 2f;
+                canvas.drawRoundRect(
+                        left,
+                        centerY - barH / 2f,
+                        left + barW,
+                        centerY + barH / 2f,
+                        radius,
+                        radius,
+                        paint
+                );
+            }
+        }
+    }
+
     private static final class SheetState {
         List<String[]> messages = new ArrayList<>();
         final Set<String> selectedIds = new LinkedHashSet<>();
         boolean selectionMode;
         boolean showingAllFallback;
+        MediaPlayer mediaPlayer;
+        String playingUrl;
+        TextView activePlayIcon;
+        WaveformView activeWaveform;
+        TextView activeTimerView;
+        Runnable progressTick;
     }
 
     private static final class TrashIconDrawable extends Drawable {
