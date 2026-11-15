@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-15T05:08:15",
-  "description": "## [1.15.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.14.0...v1.15.0) (2026-11-15)\n\n### 🐛 Bug Fixes\n\n* **instagram:** remove rounded-header overlay scanner (wrong approach) ([fbb7ca3](https://github.com/ABHIJAT-DEV/piko/commit/fbb7ca3f2b89798148253e4b87ad865e30f8aec3))\n\n### ✨ New Features\n\n* **instagram:** add floating blurry DM chat header with centered avatar and dual call pill ([2e6353e](https://github.com/ABHIJAT-DEV/piko/commit/2e6353eef5e26740702cb97c02683be16507e618))\n* **instagram:** round Instagram's own header components (no overlay) ([b10c998](https://github.com/ABHIJAT-DEV/piko/commit/b10c998f8cfc29ee7a48a4a923f82e11a907f5e1))\n* **instagram:** rounded top headers across Home, Search, Chats and Settings ([0013520](https://github.com/ABHIJAT-DEV/piko/commit/00135200ea65cb33982cc0060602b37842e3f202))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.15.0/patches-1.15.0.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.15.0/patches-1.15.0.mpp.asc",
-  "version": "1.15.0"
+  "created_at": "2026-11-15T05:14:47",
+  "description": "## [1.15.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.0...v1.15.1) (2026-11-15)\n\n### 🐛 Bug Fixes\n\n* **instagram:** remove rounded top header feature entirely ([8da0c01](https://github.com/ABHIJAT-DEV/piko/commit/8da0c01641177d1c9fa34ba0b46bb32b6c1ebe20))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.15.1/patches-1.15.1.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.15.1/patches-1.15.1.mpp.asc",
+  "version": "1.15.1"
 }

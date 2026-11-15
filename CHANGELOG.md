@@ -1,3 +1,9 @@
+## [1.15.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.0...v1.15.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** remove rounded top header feature entirely ([8da0c01](https://github.com/ABHIJAT-DEV/piko/commit/8da0c01641177d1c9fa34ba0b46bb32b6c1ebe20))
+
 ## [1.15.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.14.0...v1.15.0) (2026-11-15)
 
 ### 🐛 Bug Fixes
