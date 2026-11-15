@@ -1,7 +1,7 @@
 {
-  "created_at": "2026-11-15T02:42:36",
-  "description": "## [1.13.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.12.2...v1.13.0) (2026-11-15)\n\n### 🐛 Bug Fixes\n\n* **instagram:** use PREF_DESCRIPTOR with state register in HideOnlineStatusPatch ([1e40a51](https://github.com/ABHIJAT-DEV/piko/commit/1e40a51b5ea753c45735c6d323d8036b0ad298db))\n\n### ✨ New Features\n\n* **instagram:** add Hide online status ghost mode patch ([c5d3ed5](https://github.com/ABHIJAT-DEV/piko/commit/c5d3ed521a353b20bbfe52df3077f199498a8aef))",
-  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.0/patches-1.13.0.mpp",
-  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.0/patches-1.13.0.mpp.asc",
-  "version": "1.13.0"
+  "created_at": "2026-11-15T03:26:40",
+  "description": "## [1.13.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.0...v1.13.1) (2026-11-15)\n\n### 🐛 Bug Fixes\n\n* **instagram:** also hook RealtimeClientManager.updateAppState and AppStateGetter for Hide online status ([0f3a7ad](https://github.com/ABHIJAT-DEV/piko/commit/0f3a7ad6641a7088163eee31e470596be1f9467c))",
+  "download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.1/patches-1.13.1.mpp",
+  "signature_download_url": "https://github.com/ABHIJAT-DEV/piko/releases/download/v1.13.1/patches-1.13.1.mpp.asc",
+  "version": "1.13.1"
 }

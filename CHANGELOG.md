@@ -1,3 +1,9 @@
+## [1.13.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.0...v1.13.1) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** also hook RealtimeClientManager.updateAppState and AppStateGetter for Hide online status ([0f3a7ad](https://github.com/ABHIJAT-DEV/piko/commit/0f3a7ad6641a7088163eee31e470596be1f9467c))
+
 ## [1.13.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.12.2...v1.13.0) (2026-11-15)
 
 ### 🐛 Bug Fixes
