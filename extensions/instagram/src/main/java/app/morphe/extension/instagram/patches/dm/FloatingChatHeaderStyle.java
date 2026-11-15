@@ -32,6 +32,7 @@ import android.widget.EditText;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import java.util.ArrayList;
@@ -198,8 +199,12 @@ public final class FloatingChatHeaderStyle {
             }
         }
 
+        int maxDiv = dp(activity, 3);
+        int maxHeaderH = dp(activity, 140);
+        View branch = origHeader;
         ViewParent parent = origHeader.getParent();
-        if (parent instanceof ViewGroup) {
+
+        for (int depth = 0; depth < 4 && parent instanceof ViewGroup; depth++) {
             ViewGroup parentGroup = (ViewGroup) parent;
             if (parentGroup.getClipChildren()) {
                 parentGroup.setClipChildren(false);
@@ -208,28 +213,52 @@ public final class FloatingChatHeaderStyle {
                 parentGroup.setClipToPadding(false);
             }
 
-            int maxDiv = dp(activity, 3);
+            if (branch != origHeader && branch.getHeight() > 0 && branch.getHeight() <= maxHeaderH) {
+                Drawable bbg = branch.getBackground();
+                if (bbg != null && (!(bbg instanceof ColorDrawable) || ((ColorDrawable) bbg).getColor() != Color.TRANSPARENT)) {
+                    branch.setBackgroundColor(Color.TRANSPARENT);
+                }
+            }
+
             for (int i = 0; i < parentGroup.getChildCount(); i++) {
                 View sibling = parentGroup.getChildAt(i);
-                if (sibling == null || sibling == origHeader || sibling.getVisibility() != View.VISIBLE) {
+                if (sibling == null || sibling == branch || sibling.getVisibility() != View.VISIBLE) {
                     continue;
                 }
                 if (sibling.getHeight() > 0 && sibling.getHeight() <= maxDiv
-                        && sibling.getTop() >= origHeader.getBottom() - maxDiv) {
+                        && sibling.getTop() >= branch.getBottom() - maxDiv) {
                     sibling.setVisibility(View.GONE);
-                } else if (parentGroup instanceof LinearLayout
-                        && ((LinearLayout) parentGroup).getOrientation() == LinearLayout.VERTICAL
-                        && sibling.getHeight() > origHeader.getHeight() * 2) {
-                    int overlap = -origHeader.getHeight();
-                    if (sibling.getLayoutParams() instanceof ViewGroup.MarginLayoutParams) {
-                        ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) sibling.getLayoutParams();
-                        if (mlp.topMargin != overlap) {
-                            mlp.topMargin = overlap;
+                } else if (sibling.getHeight() > origHeader.getHeight() * 2) {
+                    disableClippingTree(sibling);
+                    int branchH = branch.getHeight() > 0 ? branch.getHeight() : origHeader.getHeight();
+                    ViewGroup.LayoutParams slp = sibling.getLayoutParams();
+                    if (slp instanceof RelativeLayout.LayoutParams) {
+                        RelativeLayout.LayoutParams rlp = (RelativeLayout.LayoutParams) slp;
+                        if (rlp.getRule(RelativeLayout.BELOW) != 0) {
+                            rlp.removeRule(RelativeLayout.BELOW);
+                            rlp.topMargin = 0;
+                            sibling.setLayoutParams(rlp);
+                        }
+                    } else if (parentGroup instanceof LinearLayout
+                            && ((LinearLayout) parentGroup).getOrientation() == LinearLayout.VERTICAL
+                            && slp instanceof ViewGroup.MarginLayoutParams) {
+                        ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) slp;
+                        if (mlp.topMargin != -branchH) {
+                            mlp.topMargin = -branchH;
+                            sibling.setLayoutParams(mlp);
+                        }
+                    } else if (slp instanceof ViewGroup.MarginLayoutParams) {
+                        ViewGroup.MarginLayoutParams mlp = (ViewGroup.MarginLayoutParams) slp;
+                        if (sibling.getTop() > dp(activity, 8) && mlp.topMargin >= 0) {
+                            mlp.topMargin = -branchH;
                             sibling.setLayoutParams(mlp);
                         }
                     }
                 }
             }
+
+            branch = parentGroup;
+            parent = parentGroup.getParent();
         }
     }
 
@@ -267,23 +296,24 @@ public final class FloatingChatHeaderStyle {
         View fadeBackdrop = new View(activity);
         fadeBackdrop.setClickable(false);
         fadeBackdrop.setFocusable(false);
-        int cTop = (bgBase & 0x00FFFFFF) | 0xF2000000;
-        int cMid = (bgBase & 0x00FFFFFF) | 0xB8000000;
+        int cTop = (bgBase & 0x00FFFFFF) | 0xF5000000;
+        int cMid1 = (bgBase & 0x00FFFFFF) | 0xCC000000;
+        int cMid2 = (bgBase & 0x00FFFFFF) | 0x66000000;
         int cEnd = (bgBase & 0x00FFFFFF);
         GradientDrawable fadeDrawable = new GradientDrawable(
                 GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{cTop, cMid, cEnd}
+                new int[]{cTop, cMid1, cMid2, cEnd}
         );
         fadeBackdrop.setBackground(fadeDrawable);
         if (Build.VERSION.SDK_INT >= 31) {
             try {
-                fadeBackdrop.setRenderEffect(RenderEffect.createBlurEffect(18f, 18f, Shader.TileMode.CLAMP));
+                fadeBackdrop.setRenderEffect(RenderEffect.createBlurEffect(20f, 20f, Shader.TileMode.CLAMP));
             } catch (Throwable ignored) {
             }
         }
         root.addView(fadeBackdrop, new FrameLayout.LayoutParams(
                 ViewGroup.LayoutParams.MATCH_PARENT,
-                dp(activity, 132),
+                dp(activity, 152),
                 Gravity.TOP
         ));
 
@@ -309,7 +339,7 @@ public final class FloatingChatHeaderStyle {
         centerWrap.setClipChildren(false);
         centerWrap.setClipToPadding(false);
 
-        int avatarSize = dp(activity, 64);
+        int avatarSize = dp(activity, 80);
         FrameLayout avatarFrame = new FrameLayout(activity);
         GradientDrawable avatarBg = new GradientDrawable();
         avatarBg.setShape(GradientDrawable.OVAL);
@@ -357,7 +387,7 @@ public final class FloatingChatHeaderStyle {
                 ViewGroup.LayoutParams.WRAP_CONTENT
         );
         nameLp.gravity = Gravity.TOP | Gravity.CENTER_HORIZONTAL;
-        nameLp.topMargin = avatarSize - dp(activity, 10);
+        nameLp.topMargin = avatarSize - dp(activity, 12);
         centerWrap.addView(namePill, nameLp);
 
         FrameLayout.LayoutParams centerLp = new FrameLayout.LayoutParams(
@@ -527,6 +557,32 @@ public final class FloatingChatHeaderStyle {
         }
         if (fallbackActivity != null) {
             fallbackActivity.onBackPressed();
+        }
+    }
+
+    private static void disableClippingTree(View view) {
+        if (!(view instanceof ViewGroup)) {
+            return;
+        }
+        ViewGroup group = (ViewGroup) view;
+        if (group.getClipChildren()) {
+            group.setClipChildren(false);
+        }
+        if (group.getClipToPadding()) {
+            group.setClipToPadding(false);
+        }
+        for (int i = 0; i < group.getChildCount(); i++) {
+            View child = group.getChildAt(i);
+            if (child instanceof ViewGroup && (child.getClass().getName().contains("RecyclerView")
+                    || child.getClass().getName().contains("SwipeRefresh"))) {
+                ViewGroup cg = (ViewGroup) child;
+                if (cg.getClipChildren()) {
+                    cg.setClipChildren(false);
+                }
+                if (cg.getClipToPadding()) {
+                    cg.setClipToPadding(false);
+                }
+            }
         }
     }
 
