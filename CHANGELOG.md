@@ -1,3 +1,9 @@
+## [1.13.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.1...v1.13.2) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** add DGW presence kill-switch and go-online block to Hide online status ([9cd6753](https://github.com/ABHIJAT-DEV/piko/commit/9cd67533da6c1cc08d6ffdea37891fcc20e78407))
+
 ## [1.13.1](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.0...v1.13.1) (2026-11-15)
 
 ### 🐛 Bug Fixes
