@@ -71,9 +71,9 @@ To patch with Twitter/X version 11.88 to 12.4, you must include patches from ano
 ## ⚙️ Patch Details
 
 <!-- PATCHES_START -->
-> **[v1.14.0](https://github.com/ABHIJAT-DEV/piko/releases/tag/v1.14.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;68 patches total
+> **[v1.15.0](https://github.com/ABHIJAT-DEV/piko/releases/tag/v1.15.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;69 patches total
 <details>
-<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;68 patches</summary>
+<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;69 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -141,6 +141,7 @@ To patch with Twitter/X version 11.88 to 12.4, you must include patches from ano
 | [Recommended flags](#recommended-flags) | Developer flags suggested by the community |  |
 | [Remove empty bottom space](#remove-empty-bottom-space) | Removes empty space below bottom navigation bar |  |
 | [Resume Reels after scrolling](#resume-reels-after-scrolling) | Resumes videos from where you left off when you scroll back to them in Reels |  |
+| [Rounded top header](#rounded-top-header) | Rounds the bottom corners of Instagram's own top header components (Home, Search, Messages, Profile, Settings) with the PixelMusic tonal surface |  |
 | [Sanitize share links](#sanitize-share-links) |  |  |
 | [Save Instants](#save-instants) | Captures view-once Instants as you view them so you can re-view and download them later. |  |
 | [Save deleted messages](#save-deleted-messages) | Captures incoming DMs locally as they arrive from the server and marks them when the sender deletes them. |  |

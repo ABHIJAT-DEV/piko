@@ -1,3 +1,15 @@
+## [1.15.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.14.0...v1.15.0) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** remove rounded-header overlay scanner (wrong approach) ([fbb7ca3](https://github.com/ABHIJAT-DEV/piko/commit/fbb7ca3f2b89798148253e4b87ad865e30f8aec3))
+
+### ✨ New Features
+
+* **instagram:** add floating blurry DM chat header with centered avatar and dual call pill ([2e6353e](https://github.com/ABHIJAT-DEV/piko/commit/2e6353eef5e26740702cb97c02683be16507e618))
+* **instagram:** round Instagram's own header components (no overlay) ([b10c998](https://github.com/ABHIJAT-DEV/piko/commit/b10c998f8cfc29ee7a48a4a923f82e11a907f5e1))
+* **instagram:** rounded top headers across Home, Search, Chats and Settings ([0013520](https://github.com/ABHIJAT-DEV/piko/commit/00135200ea65cb33982cc0060602b37842e3f202))
+
 ## [1.14.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.13.3...v1.14.0) (2026-11-15)
 
 ### ✨ New Features
