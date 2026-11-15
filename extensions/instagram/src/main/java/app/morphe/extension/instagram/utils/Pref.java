@@ -112,7 +112,7 @@ public class Pref {
     }
 
     public static boolean hideOnlineStatus() {
-        return (SharedPref.getBooleanPref(Settings.HIDE_ONLINE_STATUS) && SettingsStatus.hideOnlineStatus) || Pref.getTurnOnAllGhostModes();
+        return SharedPref.getBooleanPref(Settings.HIDE_ONLINE_STATUS) || Pref.getTurnOnAllGhostModes();
     }
 
     public static int resolveAppState(int state) {

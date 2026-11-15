@@ -67,12 +67,26 @@ internal object RealtimeUpdateAppStateInternalFingerprint : Fingerprint(
     parameters = listOf("Z"),
 )
 
+internal object PresenceKillSwitchExactFingerprint : Fingerprint(
+    definingClass = "LX/06hr;",
+    name = "A02",
+    returnType = "Z",
+    parameters = listOf("Lcom/instagram/common/session/UserSession;"),
+)
+
 internal object PresenceKillSwitchFingerprint : Fingerprint(
     returnType = "Z",
     parameters = listOf("Lcom/instagram/common/session/UserSession;"),
     filters = listOf(
         literal(36325433230445512L),
     ),
+)
+
+internal object DgwPresencePublishExactFingerprint : Fingerprint(
+    definingClass = "LX/06mn;",
+    name = "A06",
+    returnType = "V",
+    parameters = listOf("LX/06jA;"),
 )
 
 internal object DgwPresencePublishFingerprint : Fingerprint(
@@ -145,7 +159,9 @@ val hideOnlineStatusPatch =
             }
 
             // 4. Force the DGW/MQTT presence kill-switch MobileConfig check to return true.
-            PresenceKillSwitchFingerprint.matchOrNull()?.method?.apply {
+            val killSwitchMethod = PresenceKillSwitchExactFingerprint.matchOrNull()?.method
+                ?: PresenceKillSwitchFingerprint.matchOrNull()?.method
+            killSwitchMethod?.apply {
                 val freeReg = findFreeRegister(0, parameterRegisterStart(this))
                 addInstructionsWithLabels(
                     0,
@@ -161,7 +177,9 @@ val hideOnlineStatusPatch =
             }
 
             // 5. Belt-and-braces: short-circuit the DGW presence publisher method directly.
-            DgwPresencePublishFingerprint.matchOrNull()?.method?.apply {
+            val dgwPublishMethod = DgwPresencePublishExactFingerprint.matchOrNull()?.method
+                ?: DgwPresencePublishFingerprint.matchOrNull()?.method
+            dgwPublishMethod?.apply {
                 val freeReg = findFreeRegister(0, parameterRegisterStart(this))
                 addInstructionsWithLabels(
                     0,
