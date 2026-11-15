@@ -71,9 +71,9 @@ To patch with Twitter/X version 11.88 to 12.4, you must include patches from ano
 ## ⚙️ Patch Details
 
 <!-- PATCHES_START -->
-> **[v1.12.2](https://github.com/ABHIJAT-DEV/piko/releases/tag/v1.12.2)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;67 patches total
+> **[v1.13.0](https://github.com/ABHIJAT-DEV/piko/releases/tag/v1.13.0)**&nbsp;&nbsp;•&nbsp;&nbsp;`main`&nbsp;&nbsp;•&nbsp;&nbsp;68 patches total
 <details>
-<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;67 patches</summary>
+<summary>📦 Instagram&nbsp;&nbsp;•&nbsp;&nbsp;68 patches</summary>
 <br>
 
 **🎯 Supported versions:**
@@ -121,6 +121,7 @@ To patch with Twitter/X version 11.88 to 12.4, you must include patches from ano
 | [Hide hidden requests](#hide-hidden-requests) | Hides the hidden requests (spam) button in the message requests page |  |
 | [Hide like buttons](#hide-like-buttons) | Hides like buttons on posts, reels and stories |  |
 | [Hide notes tray](#hide-notes-tray) | Hides notes tray in DM section |  |
+| [Hide online status](#hide-online-status) | Forces app presence state to backgrounded so others can't see when you're active |  |
 | [Hide reshare button](#hide-reshare-button) | Hides the reshare button from both posts and reels. |  |
 | [Hide save buttons](#hide-save-buttons) | Hides save buttons on posts and reels |  |
 | [Hide share button](#hide-share-button) | Hides the share button on posts, reels and stories |  |

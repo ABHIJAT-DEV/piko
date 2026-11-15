@@ -1,3 +1,13 @@
+## [1.13.0](https://github.com/ABHIJAT-DEV/piko/compare/v1.12.2...v1.13.0) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** use PREF_DESCRIPTOR with state register in HideOnlineStatusPatch ([1e40a51](https://github.com/ABHIJAT-DEV/piko/commit/1e40a51b5ea753c45735c6d323d8036b0ad298db))
+
+### ✨ New Features
+
+* **instagram:** add Hide online status ghost mode patch ([c5d3ed5](https://github.com/ABHIJAT-DEV/piko/commit/c5d3ed521a353b20bbfe52df3077f199498a8aef))
+
 ## [1.12.2](https://github.com/ABHIJAT-DEV/piko/compare/v1.12.1...v1.12.2) (2026-11-14)
 
 ### 🐛 Bug Fixes
