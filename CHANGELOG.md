@@ -1,3 +1,9 @@
+## [1.15.4](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.3...v1.15.4) (2026-11-15)
+
+### 🐛 Bug Fixes
+
+* **instagram:** restore chat layout before leaving thread so nothing bleeds behind profile ([c29df79](https://github.com/ABHIJAT-DEV/piko/commit/c29df798f61eed24fcd62e59e74f0021cac2ef60))
+
 ## [1.15.3](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.2...v1.15.3) (2026-11-15)
 
 ### 🐛 Bug Fixes
