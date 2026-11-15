@@ -90,14 +90,13 @@ public final class FloatingChatHeaderStyle {
             HeaderState state = new HeaderState();
             ATTACHED_DECOR.put(decor, state);
 
+            // Layout passes only. The previous version also ran update() from an
+            // OnPreDrawListener — i.e. on every single frame — and update() walks
+            // view trees, sorts views by global rects, and mutates layout params.
+            // That is what made chat scrolling stutter: the work ran per frame,
+            // not per navigation.
             ViewTreeObserver vto = decor.getViewTreeObserver();
             vto.addOnGlobalLayoutListener(() -> update(activity, decor, state));
-            vto.addOnPreDrawListener(() -> {
-                if (decor.isAttachedToWindow()) {
-                    update(activity, decor, state);
-                }
-                return true;
-            });
         } catch (Throwable t) {
             Logger.printException(() -> "FloatingChatHeaderStyle attach failed", t);
         }
@@ -108,12 +107,22 @@ public final class FloatingChatHeaderStyle {
             hideOverlay(state);
             return;
         }
-        if (!isInsideDmThread(decor)) {
+        View composer = findDmComposer(decor);
+        if (composer == null) {
             hideOverlay(state);
             return;
         }
 
-        ViewGroup origHeader = findThreadHeader(activity, decor);
+        // Scope the header search to the thread fragment's own subtree. The old
+        // code searched the whole decor and accepted the generic
+        // "action_bar_container" id, so when another screen (e.g. a profile)
+        // was pushed on top of the chat in the same activity, it could grab
+        // THAT screen's header, blank its children, shift its content with
+        // negative margins, and draw the chat overlay over it — the glitchy,
+        // stuck-loading profile. A header outside the composer's fragment
+        // subtree is never the thread header.
+        View searchRoot = findFragmentRoot(composer, decor);
+        ViewGroup origHeader = findThreadHeader(activity, searchRoot);
         if (origHeader == null || !origHeader.isShown()) {
             hideOverlay(state);
             return;
@@ -124,16 +133,35 @@ public final class FloatingChatHeaderStyle {
         syncOverlayContent(activity, origHeader, state);
     }
 
-    private static boolean isInsideDmThread(View decor) {
+    private static View findDmComposer(View decor) {
         int composerId = ResourceUtils.getIdentifier(ResourceType.ID, "row_thread_composer_textarea");
         if (composerId != 0) {
             View v = decor.findViewById(composerId);
             if (v != null && v.isShown()) {
-                return true;
+                return v;
             }
         }
-        EditText et = findVisibleEditTextNearBottom(decor, decor.getHeight(), 0);
-        return et != null;
+        return findVisibleEditTextNearBottom(decor, decor.getHeight(), 0);
+    }
+
+    /**
+     * The fragment root for a view: climb parents until the next parent is the
+     * activity's content container (or the decor itself). Sibling fragments
+     * (profile, inbox) live under different roots, so searching only inside
+     * this subtree cannot leak onto them.
+     */
+    private static View findFragmentRoot(View view, View decor) {
+        View current = view;
+        ViewParent parent = current.getParent();
+        while (parent instanceof ViewGroup && parent != decor) {
+            ViewGroup parentGroup = (ViewGroup) parent;
+            if (parentGroup.getId() == android.R.id.content) {
+                break;
+            }
+            current = parentGroup;
+            parent = current.getParent();
+        }
+        return current;
     }
 
     private static EditText findVisibleEditTextNearBottom(View view, int rootHeight, int depth) {
@@ -159,7 +187,7 @@ public final class FloatingChatHeaderStyle {
         return null;
     }
 
-    private static ViewGroup findThreadHeader(Activity activity, View decor) {
+    private static ViewGroup findThreadHeader(Activity activity, View searchRoot) {
         int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
         int maxTopY = dp(activity, 64);
         int minH = dp(activity, 44);
@@ -169,7 +197,7 @@ public final class FloatingChatHeaderStyle {
         for (String idName : THREAD_HEADER_IDS) {
             int id = ResourceUtils.getIdentifier(ResourceType.ID, idName);
             if (id != 0) {
-                View v = decor.findViewById(id);
+                View v = searchRoot.findViewById(id);
                 if (v instanceof ViewGroup && v.isShown()
                         && v.getWidth() >= (int) (screenWidth * 0.90f)
                         && v.getHeight() >= minH && v.getHeight() <= maxH
@@ -198,6 +226,17 @@ public final class FloatingChatHeaderStyle {
                 child.setAlpha(0f);
             }
         }
+
+        // The parent/sibling surgery below rewrites layout params (negative top
+        // margins so the list slides under the floating header). Doing that on
+        // every update() forces fresh layout passes and fights the scroll.
+        // The hierarchy is built once per thread screen, so run it once per
+        // header instance; the cheap transparency/alpha re-asserts above still
+        // run every pass.
+        if (state.surgeryHeader == origHeader) {
+            return;
+        }
+        state.surgeryHeader = origHeader;
 
         int maxDiv = dp(activity, 3);
         int maxHeaderH = dp(activity, 140);
@@ -333,6 +372,12 @@ public final class FloatingChatHeaderStyle {
         backLp.leftMargin = sideMargin;
         backLp.topMargin = topOffset;
         root.addView(backPill, backLp);
+        // Default back behaviour; syncOverlayContent overrides this with the
+        // original header's back button when one is found.
+        backPill.setOnClickListener(v -> {
+            hideOverlay(state);
+            activity.onBackPressed();
+        });
 
         // Center big floating avatar + overlapping name pill
         FrameLayout centerWrap = new FrameLayout(activity);
@@ -454,15 +499,26 @@ public final class FloatingChatHeaderStyle {
         List<TextView> texts = new ArrayList<>();
         collectViews(origHeader, icons, texts);
 
+        // Measure each view's global position ONCE. The old code called
+        // getGlobalVisibleRect() inside the sort comparators (a parent-chain
+        // walk per comparison) and again in the selection loop.
         Rect r = new Rect();
-        Collections.sort(icons, Comparator.comparingInt(iv -> {
-            iv.getGlobalVisibleRect(r);
-            return r.left;
-        }));
-        Collections.sort(texts, Comparator.comparingInt(tv -> {
-            tv.getGlobalVisibleRect(r);
-            return r.top;
-        }));
+        Map<ImageView, Integer> iconLeft = new java.util.IdentityHashMap<>();
+        for (ImageView iv : icons) {
+            if (iv.getGlobalVisibleRect(r)) {
+                iconLeft.put(iv, r.left);
+            }
+        }
+        icons.removeIf(iv -> !iconLeft.containsKey(iv));
+        Collections.sort(icons, Comparator.comparingInt(iconLeft::get));
+
+        Map<TextView, Integer> textTop = new java.util.IdentityHashMap<>();
+        for (TextView tv : texts) {
+            if (tv.getGlobalVisibleRect(r)) {
+                textTop.put(tv, r.top);
+            }
+        }
+        Collections.sort(texts, Comparator.comparingInt(tv -> textTop.getOrDefault(tv, Integer.MAX_VALUE)));
 
         int screenWidth = activity.getResources().getDisplayMetrics().widthPixels;
         ImageView origBack = null;
@@ -470,31 +526,52 @@ public final class FloatingChatHeaderStyle {
         List<ImageView> rightIcons = new ArrayList<>();
 
         for (ImageView iv : icons) {
-            if (iv.getGlobalVisibleRect(r)) {
-                if (r.left < screenWidth * 0.16f && origBack == null) {
-                    origBack = iv;
-                } else if (r.left < screenWidth * 0.45f && origAvatar == null) {
-                    origAvatar = iv;
-                } else if (r.left >= screenWidth * 0.50f) {
-                    rightIcons.add(iv);
-                }
+            int left = iconLeft.get(iv);
+            if (left < screenWidth * 0.16f && origBack == null) {
+                origBack = iv;
+            } else if (left < screenWidth * 0.45f && origAvatar == null) {
+                origAvatar = iv;
+            } else if (left >= screenWidth * 0.50f) {
+                rightIcons.add(iv);
             }
         }
 
+        // Everything below is idempotent: drawables, texts and click listeners
+        // are only touched when the source view actually changed, so repeated
+        // layout passes (keyboard, scroll-driven relayouts) cost almost nothing
+        // and never churn listeners mid-gesture.
         if (origBack != null && origBack.getDrawable() != null) {
-            state.backIcon.setImageDrawable(origBack.getDrawable());
-            final ImageView targetBack = origBack;
-            state.backPill.setOnClickListener(v -> triggerClick(targetBack, activity));
-        } else {
-            state.backPill.setOnClickListener(v -> activity.onBackPressed());
+            if (state.lastBack != origBack) {
+                state.lastBack = origBack;
+                state.backIcon.setImageDrawable(origBack.getDrawable());
+                final ImageView targetBack = origBack;
+                state.backPill.setOnClickListener(v -> {
+                    hideOverlay(state);
+                    triggerClick(targetBack, activity);
+                });
+            }
+        } else if (state.lastBack != null) {
+            state.lastBack = null;
+            state.backPill.setOnClickListener(v -> {
+                hideOverlay(state);
+                activity.onBackPressed();
+            });
         }
 
         if (origAvatar != null && origAvatar.getDrawable() != null) {
             if (state.avatarView.getDrawable() != origAvatar.getDrawable()) {
                 state.avatarView.setImageDrawable(origAvatar.getDrawable());
             }
-            final ImageView targetAvatar = origAvatar;
-            state.centerWrap.setOnClickListener(v -> triggerClick(targetAvatar, null));
+            if (state.lastAvatar != origAvatar) {
+                state.lastAvatar = origAvatar;
+                final ImageView targetAvatar = origAvatar;
+                state.centerWrap.setOnClickListener(v -> {
+                    // Hide our overlay before the profile opens so it never
+                    // sits on top of the profile during the transition.
+                    hideOverlay(state);
+                    triggerClick(targetAvatar, null);
+                });
+            }
         }
 
         String title = "";
@@ -505,11 +582,14 @@ public final class FloatingChatHeaderStyle {
                 break;
             }
         }
-        if (!title.isEmpty()) {
-            state.namePill.setText(title);
-            state.namePill.setVisibility(View.VISIBLE);
-        } else {
-            state.namePill.setVisibility(View.GONE);
+        if (!title.equals(state.lastTitle)) {
+            state.lastTitle = title;
+            if (!title.isEmpty()) {
+                state.namePill.setText(title);
+                state.namePill.setVisibility(View.VISIBLE);
+            } else {
+                state.namePill.setVisibility(View.GONE);
+            }
         }
 
         // Rightmost two icons are Audio Call and Video Call
@@ -524,19 +604,27 @@ public final class FloatingChatHeaderStyle {
 
         if (origAudio != null && origAudio.getDrawable() != null) {
             state.audioBtn.setVisibility(View.VISIBLE);
-            state.audioBtn.setImageDrawable(origAudio.getDrawable());
-            final ImageView targetAudio = origAudio;
-            state.audioBtn.setOnClickListener(v -> triggerClick(targetAudio, null));
+            if (state.lastAudio != origAudio) {
+                state.lastAudio = origAudio;
+                state.audioBtn.setImageDrawable(origAudio.getDrawable());
+                final ImageView targetAudio = origAudio;
+                state.audioBtn.setOnClickListener(v -> triggerClick(targetAudio, null));
+            }
         } else {
+            state.lastAudio = null;
             state.audioBtn.setVisibility(View.GONE);
         }
 
         if (origVideo != null && origVideo.getDrawable() != null) {
             state.videoBtn.setVisibility(View.VISIBLE);
-            state.videoBtn.setImageDrawable(origVideo.getDrawable());
-            final ImageView targetVideo = origVideo;
-            state.videoBtn.setOnClickListener(v -> triggerClick(targetVideo, null));
+            if (state.lastVideo != origVideo) {
+                state.lastVideo = origVideo;
+                state.videoBtn.setImageDrawable(origVideo.getDrawable());
+                final ImageView targetVideo = origVideo;
+                state.videoBtn.setOnClickListener(v -> triggerClick(targetVideo, null));
+            }
         } else {
+            state.lastVideo = null;
             state.videoBtn.setVisibility(View.GONE);
         }
 
@@ -647,5 +735,14 @@ public final class FloatingChatHeaderStyle {
         LinearLayout rightPill;
         ImageView audioBtn;
         ImageView videoBtn;
+        // Idempotency bookkeeping: which header instance already had the
+        // layout surgery, and which original views the overlay currently
+        // mirrors (so repeated update() passes don't redo the work).
+        View surgeryHeader;
+        ImageView lastBack;
+        ImageView lastAvatar;
+        ImageView lastAudio;
+        ImageView lastVideo;
+        String lastTitle;
     }
 }
