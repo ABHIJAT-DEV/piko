@@ -846,6 +846,13 @@ public class ScreenBuilder {
         );
         addPreference(
                 helper.switchPreference(
+                        str("piko_floating_chat_header"),
+                        str("piko_floating_chat_header_desc"),
+                        Settings.FLOATING_CHAT_HEADER
+                )
+        );
+        addPreference(
+                helper.switchPreference(
                         str("piko_rounded_top_header"),
                         str("piko_rounded_top_header_desc"),
                         Settings.ROUNDED_TOP_HEADER
