@@ -851,13 +851,6 @@ public class ScreenBuilder {
                         Settings.FLOATING_CHAT_HEADER
                 )
         );
-        addPreference(
-                helper.switchPreference(
-                        str("piko_rounded_top_header"),
-                        str("piko_rounded_top_header_desc"),
-                        Settings.ROUNDED_TOP_HEADER
-                )
-        );
         if (SettingsStatus.removeEmptyBottomSpace) {
             addPreference(
                     helper.switchPreference(
