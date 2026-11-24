@@ -301,8 +301,6 @@
     <string name="piko_rounded_feed_media_desc">Round the corners of photos, carousels, and videos in the home feed</string>
     <string name="piko_feed_sound_by_default">Start home feed with sound</string>
     <string name="piko_feed_sound_by_default_desc">Automatically unmute home feed videos and music posts by default</string>
-    <string name="piko_floating_chat_header">Floating DM chat header</string>
-    <string name="piko_floating_chat_header_desc">Style DM chat headers with a faded blurry top area, centered avatar, and floating call pills</string>
 
     <string name="piko_navigation_tab_home">Home</string>
     <string name="piko_navigation_tab_reels">Reels</string>

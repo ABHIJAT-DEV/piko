@@ -844,13 +844,6 @@ public class ScreenBuilder {
                         Settings.FEED_SOUND_BY_DEFAULT
                 )
         );
-        addPreference(
-                helper.switchPreference(
-                        str("piko_floating_chat_header"),
-                        str("piko_floating_chat_header_desc"),
-                        Settings.FLOATING_CHAT_HEADER
-                )
-        );
         if (SettingsStatus.removeEmptyBottomSpace) {
             addPreference(
                     helper.switchPreference(

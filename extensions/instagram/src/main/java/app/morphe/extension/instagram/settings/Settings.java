@@ -121,7 +121,6 @@ public class Settings {
     public static final BooleanSetting NAV_BAR_PIXELMUSIC_STYLE = new BooleanSetting("nav_bar_pixelmusic_style", true, NOT_REQUIRED);
     public static final BooleanSetting ROUNDED_FEED_MEDIA = new BooleanSetting("rounded_feed_media", true, NOT_REQUIRED);
     public static final BooleanSetting FEED_SOUND_BY_DEFAULT = new BooleanSetting("feed_sound_by_default", true, NOT_REQUIRED);
-    public static final BooleanSetting FLOATING_CHAT_HEADER = new BooleanSetting("floating_chat_header", true, NOT_REQUIRED);
     public static final BooleanSetting HIDE_HOME_CREATE_BUTTON = new BooleanSetting("hide_home_create_button", false, NOT_REQUIRED);
     public static final BooleanSetting HIDE_HOME_NOTIFICATIONS_BUTTON = new BooleanSetting("hide_home_notifications_button", false, NOT_REQUIRED);
 
