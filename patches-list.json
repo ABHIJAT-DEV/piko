@@ -316,12 +316,11 @@
           "description": "The device Instagram is told this phone is. It is baked into the patched app and applies from the very first launch, before any login. To change it, patch the app again with a different model.",
           "required": true,
           "type": "kotlin.String",
-          "default": "galaxy_s26_ultra",
+          "default": "galaxy_s25_ultra",
           "values": {
             "Real device (no spoofing)": "real",
             "Pixel 9 Pro XL": "pixel_9_pro_xl",
             "Pixel 10 Pro XL": "pixel_10_pro_xl",
-            "Galaxy S26 Ultra": "galaxy_s26_ultra",
             "Galaxy S25 Ultra": "galaxy_s25_ultra",
             "Realme P3 Pro": "realme_p3_pro",
             "Custom": "custom"
@@ -358,6 +357,42 @@
           "key": "customDevice",
           "title": "Custom device codename",
           "description": "Only used when Device model is Custom. Example: komodo",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "customProduct",
+          "title": "Custom product name",
+          "description": "Only used when Device model is Custom. Example: RMX5032IN",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "customFingerprint",
+          "title": "Custom fingerprint",
+          "description": "Only used when Device model is Custom. Paste the exact fingerprint from a real device so the spoof holds together. Example: google/komodo/komodo:15/BP1A.250405.005.A1/13151424:user/release-keys",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "customBuildId",
+          "title": "Custom build ID",
+          "description": "Only used when Device model is Custom. Example: BP1A.250405.005.A1",
+          "required": false,
+          "type": "kotlin.String",
+          "default": "",
+          "values": null
+        },
+        {
+          "key": "customIncremental",
+          "title": "Custom build incremental",
+          "description": "Only used when Device model is Custom. Example: 13151424",
           "required": false,
           "type": "kotlin.String",
           "default": "",

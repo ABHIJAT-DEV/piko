@@ -30,12 +30,11 @@ val deviceSpoofPatch =
 
         val deviceModel by option(
             key = "deviceModel",
-            default = "galaxy_s26_ultra",
+            default = "galaxy_s25_ultra",
             values = mapOf(
                 "Real device (no spoofing)" to "real",
                 "Pixel 9 Pro XL" to "pixel_9_pro_xl",
                 "Pixel 10 Pro XL" to "pixel_10_pro_xl",
-                "Galaxy S26 Ultra" to "galaxy_s26_ultra",
                 "Galaxy S25 Ultra" to "galaxy_s25_ultra",
                 "Realme P3 Pro" to "realme_p3_pro",
                 "Custom" to "custom",
@@ -79,17 +78,53 @@ val deviceSpoofPatch =
             required = false,
         )
 
+        val customProduct by stringOption(
+            key = "customProduct",
+            default = "",
+            title = "Custom product name",
+            description = "Only used when Device model is Custom. Example: RMX5032IN",
+            required = false,
+        )
+
+        val customFingerprint by stringOption(
+            key = "customFingerprint",
+            default = "",
+            title = "Custom fingerprint",
+            description = "Only used when Device model is Custom. Paste the exact fingerprint from a real device so the spoof holds together. Example: google/komodo/komodo:15/BP1A.250405.005.A1/13151424:user/release-keys",
+            required = false,
+        )
+
+        val customBuildId by stringOption(
+            key = "customBuildId",
+            default = "",
+            title = "Custom build ID",
+            description = "Only used when Device model is Custom. Example: BP1A.250405.005.A1",
+            required = false,
+        )
+
+        val customIncremental by stringOption(
+            key = "customIncremental",
+            default = "",
+            title = "Custom build incremental",
+            description = "Only used when Device model is Custom. Example: 13151424",
+            required = false,
+        )
+
         execute {
             // Bake the chosen model into the app as an asset. The extension
             // reads it at startup until the user changes the device in the
             // in-app Piko settings, so the spoof is already active on the
             // first launch and survives a fresh login or cleared settings.
             val config = buildString {
-                appendLine("profile=${deviceModel ?: "galaxy_s26_ultra"}")
+                appendLine("profile=${deviceModel ?: "galaxy_s25_ultra"}")
                 appendLine("custom_manufacturer=${customManufacturer ?: ""}")
                 appendLine("custom_brand=${customBrand ?: ""}")
                 appendLine("custom_model=${customModel ?: ""}")
                 appendLine("custom_device=${customDevice ?: ""}")
+                appendLine("custom_product=${customProduct ?: ""}")
+                appendLine("custom_fingerprint=${customFingerprint ?: ""}")
+                appendLine("custom_build_id=${customBuildId ?: ""}")
+                appendLine("custom_incremental=${customIncremental ?: ""}")
             }
             resourceFile("assets/piko/device_spoof.properties", copy = false).writeText(config)
 
