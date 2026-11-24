@@ -1,3 +1,9 @@
+## [1.15.6](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.5...v1.15.6) (2026-11-24)
+
+### 🐛 Bug Fixes
+
+* **instagram:** remove floating DM chat header feature entirely ([4ad3af1](https://github.com/ABHIJAT-DEV/piko/commit/4ad3af1508134ac28429592f86d03012b40033bf))
+
 ## [1.15.5](https://github.com/ABHIJAT-DEV/piko/compare/v1.15.4...v1.15.5) (2026-11-15)
 
 ### 🐛 Bug Fixes
